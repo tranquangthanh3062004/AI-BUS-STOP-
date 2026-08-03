@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  kiosk-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smart_bus_stop_kiosk
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - HOST=0.0.0.0
+      - PORT=8000
+      - STATION_ID=STATION_001_MY_DINH
+      - STATION_NAME=Trạm Xe Buýt Bến Xe Mỹ Đình - Hà Nội
+    volumes:
+      - ./knowledge_base:/app/knowledge_base
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/status"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

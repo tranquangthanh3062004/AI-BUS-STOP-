@@ -1,0 +1,79 @@
+=== HỆ THỐNG XE BUÝT ĐIỆN VINBUS HÀ NỘI ===
+
+- Mã số: 153 | Tuyến xe buýt: Bến xe Mỹ Đình - Hào Nam
+Lộ trình: Bến xe Mỹ Đình - Phạm Hùng - Mễ Trì - Lê Quang Đạo - Châu Văn Liêm - Đại lộ Thăng Long - Trần Duy Hưng - Nguyễn Chí Thanh - Huỳnh Thúc Kháng - Thái Hà - Chùa Bộc - Phạm Ngọc Thạch - Đào Duy Anh - Đại Cồ Việt - Trần Khát Chân - Lò Đúc - Yecxanh - Trần Thánh Tông - Bệnh viện 108 - Trần Hưng Đạo - Hào Nam.
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 - 20 phút/chuyến
+Giá vé tham khảo: 8.000 VNĐ
+
+- Mã số: 155 | Tuyến xe buýt: Khu đô thị Vinhomes Smart City - Bến xe Giáp Bát
+Lộ trình: Khu đô thị Vinhomes Smart City - Đại lộ Thăng Long - Khuất Duy Tiến - Nguyễn Xiển - Nghiêm Xuân Yêm - Hoàng Liệt - Ngọc Hồi - Giải Phóng - Bến xe Giáp Bát.
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 - 20 phút/chuyến
+Giá vé tham khảo: 8.000 VNĐ
+
+- Mã số: 157 | Tuyến xe buýt: Bến xe Yên Nghĩa - Khu đô thị Vinhomes Ocean Park
+Lộ trình: Bến xe Yên Nghĩa - Quang Trung (Hà Đông) - Trần Phú (Hà Đông) - Nguyễn Trãi - Ngã tư Sở - Trường Chinh - Đại La - Minh Khai - Cầu Vĩnh Tuy - Đàm Quang Trung - Cổ Linh - Đường gom Quốc lộ 5B - Khu đô thị Vinhomes Ocean Park.
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 - 20 phút/chuyến
+Giá vé tham khảo: 9.000 VNĐ
+
+- Mã số: 159 | Tuyến xe buýt: Khu đô thị Times City - Bệnh viện Nội tiết Trung ương cơ sở Ngọc Hồi
+Lộ trình: Khu đô thị Times City - Minh Khai - Đại La - Giải Phóng - Ngọc Hồi - Bệnh viện Nội tiết Trung ương cơ sở Ngọc Hồi.
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 - 20 phút/chuyến
+Giá vé tham khảo: 7.000 VNĐ
+
+- Mã số: E01 | Tuyến xe buýt: Bến xe Mỹ Đình - KĐT Ocean Park
+Lộ trình: Bến xe Mỹ Đình - Phạm Hùng - Khuất Duy Tiến - Nguyễn Trãi - Trường Chinh - Đại La - Minh Khai - Cầu Vĩnh Tuy - Aeon Mall Long Biên - KĐT Ocean Park.
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 phút/chuyến
+Giá vé tham khảo: 8.000 VNĐ
+
+- Mã số: E02 | Tuyến xe buýt: Hào Nam - KĐT Ocean Park
+Lộ trình: Hào Nam - Ô Chợ Dừa - Xã Đàn - Phạm Ngọc Thạch - Đại Cồ Việt - Trần Khát Chân - Nguyễn Khoái - Cầu Vĩnh Tuy - KĐT Ocean Park.
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 phút/chuyến
+Giá vé tham khảo: 8.000 VNĐ
+
+- Mã số: E03 | Tuyến xe buýt: Bến xe Mỹ Đình - KĐT Ocean Park
+Lộ trình: Bến xe Mỹ Đình - Phạm Hùng - Trần Duy Hưng - Nguyễn Chí Thanh - Huỳnh Thúc Kháng - Thái Hà - Chùa Bộc - Phạm Ngọc Thạch - Đại Cồ Việt - Trần Khát Chân - Cầu Vĩnh Tuy - KĐT Ocean Park.
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 phút/chuyến
+Giá vé tham khảo: 9.000 VNĐ
+
+- Mã số: E04 | Tuyến xe buýt: KĐT Smart City - Vincom Long Biên
+Lộ trình: KĐT Smart City - Đại lộ Thăng Long - Khuất Duy Tiến - Nguyễn Trãi - Trường Chinh - Đại La - Minh Khai - Cầu Vĩnh Tuy - Chu Huy Mân - Vincom Long Biên.
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 phút/chuyến
+Giá vé tham khảo: 8.000 VNĐ
+
+- Mã số: E05 | Tuyến xe buýt: Long Biên - KĐT Smart City
+Lộ trình: Long Biên - Yên Phụ - Thanh Niên - Thụy Khuê - Văn Cao - Liễu Giai - Đào Tấn - Bưởi - Cầu Giấy - Xuân Thủy - Phạm Hùng - Đại lộ Thăng Long - KĐT Smart City.
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 phút/chuyến
+Giá vé tham khảo: 7.000 VNĐ
+
+- Mã số: E06 | Tuyến xe buýt: Bến xe Giáp Bát - KĐT Smart City
+Lộ trình: Bến xe Giáp Bát - Giải Phóng - Ngọc Hồi - Hoàng Liệt - Nghiêm Xuân Yêm - Nguyễn Xiển - Khuất Duy Tiến - Đại lộ Thăng Long - KĐT Smart City.
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 phút/chuyến
+Giá vé tham khảo: 7.000 VNĐ
+
+- Mã số: E07 | Tuyến xe buýt: Long Biên - KĐT Smart City
+Lộ trình: Long Biên - Yên Phụ - Trần Nhật Duật - Nguyễn Hữu Huân - Lý Thái Tổ - Ngô Quyền - Hai Bà Trưng - Thợ Nhuộm - Điện Biên Phủ - Trần Phú - Sơn Tây - Kim Mã - Nguyễn Chí Thanh - Trần Duy Hưng - Đại lộ Thăng Long - KĐT Smart City.
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 phút/chuyến
+Giá vé tham khảo: 7.000 VNĐ
+
+- Mã số: E08 | Tuyến xe buýt: KĐT Ngoại giao đoàn - KĐT Times City
+Lộ trình: KĐT Ngoại giao đoàn - Xuân Đỉnh - Nguyễn Hoàng Tôn - Võ Chí Công - Hoàng Quốc Việt - Nguyễn Văn Huyên - Nguyễn Khánh Toàn - Đào Tấn - Kim Mã - Nguyễn Thái Học - Tôn Đức Thắng - Xã Đàn - Đại Cồ Việt - Trần Khát Chân - Nguyễn Khoái - Minh Khai - KĐT Times City.
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 phút/chuyến
+Giá vé tham khảo: 8.000 VNĐ
+
+- Mã số: E09 | Tuyến xe buýt: KĐT Smart City - Công viên nước Hồ Tây
+Lộ trình: KĐT Smart City - Đại lộ Thăng Long - Khuất Duy Tiến - Phạm Hùng - Phạm Văn Đồng - Nguyễn Hoàng Tôn - Lạc Long Quân - Công viên nước Hồ Tây.
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 phút/chuyến
+Giá vé tham khảo: 7.000 VNĐ

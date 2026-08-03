@@ -1,0 +1,37 @@
+=== LỘ TRÌNH BỔ SUNG CÁC TUYẾN THIẾU ===
+
+- Mã số: 101 | Tuyến xe buýt: BX Giáp Bát – Vân Đình
+Lộ trình: Bến xe Giáp Bát - Giải Phóng - Ngọc Hồi - Thường Tín - Phú Xuyên - Tỉnh lộ 428 - Thị trấn Vân Đình.
+
+- Mã số: 08BCT | Tuyến xe buýt: Long Biên – Vạn Phúc
+Lộ trình: Long Biên - Trần Nhật Duật - Nguyễn Hữu Huân - Lý Thái Tổ - Ngô Quyền - Lý Thường Kiệt - Bà Triệu - Lê Đại Hành - Đại Cồ Việt - Giải Phóng - Trường Chinh - Ngã tư Sở - Nguyễn Trãi - Trần Phú (Hà Đông) - Vạn Phúc.
+
+- Mã số: 09CT | Tuyến xe buýt: Trần Khánh Dư – Trần Khánh Dư
+Lộ trình: Bãi đỗ xe Trần Khánh Dư - Trần Hưng Đạo - Lê Thánh Tông - Tràng Tiền - Hàng Khay - Tràng Thi - Điện Biên Phủ - Đội Cấn - Liễu Giai - Nguyễn Chí Thanh - Láng - Ngã tư Sở - Tây Sơn - Nguyễn Lương Bằng - Tôn Đức Thắng - Chu Văn An - Điện Biên Phủ - Tràng Thi - Hàng Khay - Tràng Tiền - Lê Thánh Tông - Trần Hưng Đạo - Bãi đỗ xe Trần Khánh Dư.
+
+- Mã số: 14CT | Tuyến xe buýt: Trần Khánh Dư – Cổ Nhuế
+Lộ trình: Bãi đỗ xe Trần Khánh Dư - Trần Hưng Đạo - Lê Thánh Tông - Tràng Tiền - Hàng Khay - Tràng Thi - Điện Biên Phủ - Trần Phú - Sơn Tây - Kim Mã - Đào Tấn - Nguyễn Khánh Toàn - Nguyễn Văn Huyên - Hoàng Quốc Việt - Phạm Văn Đồng - Cổ Nhuế.
+
+- Mã số: 36CT | Tuyến xe buýt: Yên Phụ – KĐT Linh Đàm
+Lộ trình: Yên Phụ - Trần Nhật Duật - Nguyễn Hữu Huân - Lý Thái Tổ - Ngô Quyền - Hai Bà Trưng - Bà Triệu - Lê Đại Hành - Đại Cồ Việt - Giải Phóng - Trương Định - Giải Phóng - Nguyễn Hữu Thọ - Khu đô thị Linh Đàm.
+
+- Mã số: 08ACT | Tuyến xe buýt: Long Biên – Đông Mỹ
+Lộ trình: Long Biên - Trần Nhật Duật - Nguyễn Hữu Huân - Lý Thái Tổ - Ngô Quyền - Lý Thường Kiệt - Bà Triệu - Lê Đại Hành - Bạch Mai - Lê Thanh Nghị - Trần Đại Nghĩa - Đại La - Trường Chinh - Giải Phóng - Ngọc Hồi - Ngũ Hiệp - Đông Mỹ.
+
+- Mã số: 103B | Tuyến xe buýt: Bến xe Mỹ Đình - Hồng Quang
+Lộ trình: Bến xe Mỹ Đình - Phạm Hùng - Khuất Duy Tiến - Nguyễn Xiển - Nghiêm Xuân Yêm - Nguyễn Hữu Thọ - Giải Phóng - Ngọc Hồi - Quốc lộ 1 - Cầu Giẽ - Hồng Quang.
+
+- Mã số: 202 | Tuyến xe buýt: Hà Nội - Hải Dương
+Lộ trình: Bến xe Gia Lâm - Ngô Gia Khảm - Ngọc Lâm - Nguyễn Văn Cừ - Nguyễn Văn Linh - Quốc lộ 5 - Ngã tư Phú Thị - KCN Phố Nối - Bến xe Hải Dương.
+
+- Mã số: 203 | Tuyến xe buýt: Hà Nội - Bắc Giang
+Lộ trình: Bến xe Giáp Bát - Giải Phóng - Kim Đồng - Nguyễn Tam Trinh - Vành Đai 3 - Quốc lộ 1A - Bến xe Bắc Giang.
+
+- Mã số: 206 | Tuyến xe buýt: Hà Nội - Phủ Lý
+Lộ trình: Bến xe Giáp Bát - Giải Phóng - Ngọc Hồi - Quốc lộ 1A - Bến xe Phủ Lý.
+
+- Mã số: 207 | Tuyến xe buýt: Hà Nội - Văn Giang
+Lộ trình: Bến xe Gia Lâm - Nguyễn Văn Cừ - Cầu Chương Dương - Trần Quang Khải - Trần Khánh Dư - Nguyễn Khoái - Cầu Vĩnh Tuy - Đàm Quang Trung - Tỉnh lộ 379 - Văn Giang.
+
+- Mã số: 86CT | Tuyến xe buýt: Ga Hà Nội – Sân Bay Nội Bài
+Lộ trình: Ga Hà Nội - Lê Duẩn - Nguyễn Du - Yết Kiêu - Trần Hưng Đạo - Tràng Thi - Cửa Nam - Yên Phụ - Cầu Nhật Tân - Sân bay Nội Bài.

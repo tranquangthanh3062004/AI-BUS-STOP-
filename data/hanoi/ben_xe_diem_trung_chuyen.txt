@@ -1,0 +1,49 @@
+=== THÔNG TIN BẾN XE VÀ ĐIỂM TRUNG CHUYỂN HÀ NỘI ===
+
+1. CÁC BẾN XE LỚN TẠI HÀ NỘI
+- Bến xe Mỹ Đình:
+  + Địa chỉ: Số 20 Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội.
+  + Các tuyến buýt kết nối: 16, 21B, 29, 30, 33, 34, 39, 44, 46, 53B, 60A, 60B, 64, 70A, 70B, 71, 74, 78, 84, 87, 88, 103B, 104, 109, 157, E01, E03.
+  + Dịch vụ: Phòng chờ có điều hòa, nhà vệ sinh, nhà ăn, quầy vé các tỉnh phía Bắc và Tây Bắc.
+
+- Bến xe Giáp Bát:
+  + Địa chỉ: Km6 đường Giải Phóng, Giáp Bát, Hoàng Mai, Hà Nội.
+  + Các tuyến buýt kết nối: 03, 08, 16, 21, 25, 28, 29, 32, 41, 42, 94, 101, 155, 203, 206, E06.
+  + Dịch vụ: Kết nối các tuyến xe khách đi các tỉnh phía Nam. Có nhà ăn, quầy vé.
+
+- Bến xe Yên Nghĩa:
+  + Địa chỉ: Quốc lộ 6, Yên Nghĩa, Hà Đông, Hà Nội.
+  + Các tuyến buýt kết nối: 01, 02, 21A, 27, 33, 62, 72, 77, 89, 91, 102, 105, 114, 157, BRT01.
+  + Kết nối ga Metro: Ga Yên Nghĩa (Tuyến 2A Cát Linh - Hà Đông).
+  + Dịch vụ: Phục vụ khách đi các tỉnh Tây Bắc, Hòa Bình, Sơn La, Điện Biên.
+
+- Bến xe Gia Lâm:
+  + Địa chỉ: Số 9 Ngô Gia Khảm, Ngọc Lâm, Long Biên, Hà Nội.
+  + Các tuyến buýt kết nối: 01, 03, 11, 15, 22A, 34, 122, 202, 207.
+  + Dịch vụ: Phục vụ các tỉnh Đông Bắc (Hải Phòng, Quảng Ninh, Bắc Giang).
+
+- Bến xe Nước Ngầm:
+  + Địa chỉ: Km8 Giải Phóng, Hoàng Liệt, Hoàng Mai, Hà Nội.
+  + Các tuyến buýt kết nối: 04, 16, 60B, 104, 106.
+  + Dịch vụ: Phục vụ chủ yếu các tuyến xe giường nằm đường dài, xe đi quốc tế (Lào, Trung Quốc).
+
+2. CÁC ĐIỂM TRUNG CHUYỂN CHÍNH
+- Điểm trung chuyển Long Biên:
+  + Vị trí: Đường Yên Phụ, Long Biên, Ba Đình (Dưới chân cầu Long Biên).
+  + Các tuyến buýt kết nối: 04, 08, 10A, 10B, 11, 14, 17, 22A, 23, 24, 31, 47A, 54, 55, 58, 65, 86, 98, E05, E07.
+  + Dịch vụ: Điểm bán vé tháng, mái che lớn, chỗ ngồi chờ.
+
+- Điểm trung chuyển Cầu Giấy:
+  + Vị trí: Đường Cầu Giấy (Gần Đại học Giao thông Vận tải và Vườn thú Hà Nội).
+  + Các tuyến buýt kết nối: 07, 09, 16, 20A, 24, 26, 27, 28, 32, 34, 38, 49, 90, 105.
+  + Kết nối ga Metro: Ga Cầu Giấy (Tuyến 3 Nhổn - Ga Hà Nội).
+  + Dịch vụ: Điểm bán vé tháng.
+
+- Điểm trung chuyển Nhổn:
+  + Vị trí: Đường 32, Minh Khai, Bắc Từ Liêm.
+  + Các tuyến buýt kết nối: 20A, 20B, 29, 32, 49, 57, 117.
+  + Kết nối ga Metro: Ga Nhổn (Tuyến 3).
+
+- Điểm trung chuyển Hoàng Quốc Việt (Bãi đỗ xe Nam Thăng Long):
+  + Vị trí: Đường Phạm Văn Đồng, Bắc Từ Liêm.
+  + Các tuyến buýt kết nối: 07, 14, 27, 28, 35A, 38, 45, 53A, 56A, 60A, 61, 93, 112.

@@ -1,0 +1,61 @@
+=== CÁC TUYẾN XE BUÝT HÀ NỘI BỔ SUNG ===
+
+- Mã số: 40 | Tuyến xe buýt: Công viên Thống Nhất - Văn Lâm (Hưng Yên)
+Lộ trình: Công viên Thống Nhất - Trần Nhân Tông - Quang Trung - Trần Hưng Đạo - Quán Sứ - Hai Bà Trưng - Phan Chu Trinh - Lý Thái Tổ - Ngô Quyền - Hàng Vôi - Hàng Tre - Hàng Muối - Trần Nhật Duật - Cầu Chương Dương - Nguyễn Văn Cừ - Nguyễn Văn Linh - Cầu Vượt Phú Thị - Nguyễn Bình - Đường tỉnh 379 - Văn Lâm (Hưng Yên).
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 - 20 phút/chuyến
+Giá vé tham khảo: 9.000 VNĐ
+
+- Mã số: 54 | Tuyến xe buýt: Long Biên - Bắc Ninh
+Lộ trình: Long Biên - Trần Nhật Duật - Cầu Chương Dương - Nguyễn Văn Cừ - Ngô Gia Tự - Cầu Đuống - Hà Huy Tập - Quốc lộ 1A - Từ Sơn - Tiên Du - Bến xe Bắc Ninh.
+Thời gian hoạt động: 5:00 - 20:00
+Tần suất: 15 - 20 phút/chuyến
+Giá vé tham khảo: 9.000 VNĐ
+
+- Mã số: 67 | Tuyến xe buýt: Bến xe Kim Mã - Phùng
+Lộ trình: Bến xe Kim Mã - Giảng Võ - Hào Nam - Hoàng Cầu - Thái Hà - Láng Hạ - Lê Văn Lương - Khuất Duy Tiến - Phạm Hùng - Đại Lộ Thăng Long - Phùng.
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 - 20 phút/chuyến
+Giá vé tham khảo: 9.000 VNĐ
+
+- Mã số: 69 | Tuyến xe buýt: Bác Cổ - Dương Quang (Gia Lâm)
+Lộ trình: Bác Cổ - Trần Khánh Dư - Trần Nhật Duật - Cầu Chương Dương - Nguyễn Văn Cừ - Nguyễn Văn Linh - Cầu Vượt Phú Thị - Dương Quang.
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 - 20 phút/chuyến
+Giá vé tham khảo: 8.000 VNĐ
+
+- Mã số: 70A | Tuyến xe buýt: Bến xe Mỹ Đình - Trung Hà
+Lộ trình: Bến xe Mỹ Đình - Phạm Hùng - Hồ Tùng Mậu - Cầu Diễn - Đường 32 - Trôi - Phùng - Đan Phượng - Phúc Thọ - Sơn Tây - Ba Vì - Trung Hà.
+Thời gian hoạt động: 5:00 - 18:30
+Tần suất: 20 - 30 phút/chuyến
+Giá vé tham khảo: 20.000 VNĐ
+
+- Mã số: 71 | Tuyến xe buýt: Bến xe Mỹ Đình - Bến xe Sơn Tây
+Lộ trình: Bến xe Mỹ Đình - Phạm Hùng - Đại Lộ Thăng Long - Quốc lộ 21 - Bến xe Sơn Tây.
+Thời gian hoạt động: 5:00 - 19:00
+Tần suất: 15 - 20 phút/chuyến
+Giá vé tham khảo: 20.000 VNĐ
+
+- Mã số: 74 | Tuyến xe buýt: Bến xe Mỹ Đình - Xuân Khanh
+Lộ trình: Bến xe Mỹ Đình - Phạm Hùng - Đại Lộ Thăng Long - Viện 105 - Xuân Khanh.
+Thời gian hoạt động: 5:00 - 19:30
+Tần suất: 15 - 20 phút/chuyến
+Giá vé tham khảo: 20.000 VNĐ
+
+- Mã số: 77 | Tuyến xe buýt: Bến xe Yên Nghĩa - Sơn Tây
+Lộ trình: Bến xe Yên Nghĩa - Quốc lộ 6 - Ba La - Quang Trung (Hà Đông) - Lê Trọng Tấn - Đường 70 - Xuân Phương - Đường 32 - Trôi - Phùng - Phúc Thọ - Bến xe Sơn Tây.
+Thời gian hoạt động: 5:00 - 19:00
+Tần suất: 20 - 30 phút/chuyến
+Giá vé tham khảo: 20.000 VNĐ
+
+- Mã số: 110 | Tuyến xe buýt: Bến xe Sơn Tây - Đá Chông
+Lộ trình: Bến xe Sơn Tây - Quốc lộ 32 - Đường 87A - Đường tỉnh 414 - Đá Chông.
+Thời gian hoạt động: 5:00 - 18:30
+Tần suất: 20 - 30 phút/chuyến
+Giá vé tham khảo: 9.000 VNĐ
+
+- Mã số: 143 | Tuyến xe buýt: Hào Nam - Khu đô thị Vinhomes Smart City
+Lộ trình: Hào Nam - Hoàng Cầu - Thái Hà - Láng Hạ - Lê Văn Lương - Khuất Duy Tiến - Đại lộ Thăng Long - Khu đô thị Vinhomes Smart City.
+Thời gian hoạt động: 5:00 - 21:00
+Tần suất: 15 - 20 phút/chuyến
+Giá vé tham khảo: 8.000 VNĐ

@@ -1,0 +1,11 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.7, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\ADMIN 88\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: E:\project\AI_Smart_Bus_Stop_Assistant
+configfile: pyproject.toml
+plugins: anyio-4.11.0, deepeval-4.0.5, langsmith-0.7.22, asyncio-1.4.0, env-1.7.0, mock-3.15.1, repeat-0.9.4, rerunfailures-16.3, xdist-3.8.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 0 items
+Running teardown with pytest sessionfinish...
+
+============================ no tests ran in 0.56s ============================

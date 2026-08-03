@@ -1,0 +1,47 @@
+=== THÔNG TIN XE BUÝT LIÊN TỈNH KẾT NỐI HÀ NỘI ===
+
+Ngoài các tuyến nội đô, hệ thống xe buýt Hà Nội còn kết nối với các tỉnh lân cận qua các tuyến buýt kế cận không trợ giá.
+
+- Mã số: 202 | Tuyến xe buýt: Hà Nội - Hải Dương
+Lộ trình: Bến xe Gia Lâm - Ngô Gia Khảm - Ngọc Lâm - Nguyễn Văn Cừ - Nguyễn Văn Linh - Quốc lộ 5 - Ngã tư Phú Thị - KCN Phố Nối - Bến xe Hải Dương.
+Thời gian hoạt động: 5:00 - 19:00
+Tần suất: 15 - 20 phút/chuyến
+Giá vé tham khảo: 40.000 VNĐ
+
+- Mã số: 203 | Tuyến xe buýt: Hà Nội - Bắc Giang
+Lộ trình: Bến xe Giáp Bát - Giải Phóng - Kim Đồng - Nguyễn Tam Trinh - Vành Đai 3 - Quốc lộ 1A - Tiên Du - Từ Sơn - Bến xe Bắc Giang.
+Thời gian hoạt động: 5:00 - 18:30
+Tần suất: 20 - 30 phút/chuyến
+Giá vé tham khảo: 50.000 VNĐ
+
+- Mã số: 204 | Tuyến xe buýt: Hà Nội - Thuận Thành (Bắc Ninh)
+Lộ trình: Bến xe Lương Yên - Nguyễn Khoái - Trần Khánh Dư - Trần Quang Khải - Cầu Chương Dương - Nguyễn Văn Cừ - Quốc lộ 5 - Thị trấn Trâu Quỳ - Quốc lộ 5 - Ngã tư Phú Thị - Cầu Hồ - Thuận Thành.
+Thời gian hoạt động: 5:00 - 19:00
+Tần suất: 20 phút/chuyến
+Giá vé tham khảo: 30.000 VNĐ
+
+- Mã số: 205 | Tuyến xe buýt: Hà Nội - Hưng Yên
+Lộ trình: Bến xe Lương Yên - Nguyễn Khoái - Trần Khánh Dư - Trần Quang Khải - Cầu Chương Dương - Nguyễn Văn Cừ - Quốc lộ 5 - Ngã tư Phú Thị - Quốc lộ 39 - Thành phố Hưng Yên.
+Thời gian hoạt động: 5:00 - 19:00
+Tần suất: 20 phút/chuyến
+Giá vé tham khảo: 45.000 VNĐ
+
+- Mã số: 206 | Tuyến xe buýt: Hà Nội - Phủ Lý (Hà Nam)
+Lộ trình: Bến xe Giáp Bát - Giải Phóng - Ngọc Hồi - Quốc lộ 1A - Thường Tín - Phú Xuyên - Đồng Văn - Bến xe Phủ Lý.
+Thời gian hoạt động: 5:00 - 19:00
+Tần suất: 15 - 20 phút/chuyến
+Giá vé tham khảo: 40.000 VNĐ
+
+- Mã số: 207 | Tuyến xe buýt: Hà Nội - Văn Giang (Hưng Yên)
+Lộ trình: Bến xe Gia Lâm - Nguyễn Văn Cừ - Cầu Chương Dương - Trần Quang Khải - Trần Khánh Dư - Nguyễn Khoái - Cầu Vĩnh Tuy - Đàm Quang Trung - Tỉnh lộ 379 - Ecopark - Văn Giang.
+Thời gian hoạt động: 5:00 - 19:00
+Tần suất: 15 - 20 phút/chuyến
+Giá vé tham khảo: 20.000 VNĐ
+
+- Mã số: 208 | Tuyến xe buýt: Hà Nội - Nam Định
+Lộ trình: Bến xe Giáp Bát - Giải Phóng - Ngọc Hồi - Quốc lộ 1A - Phủ Lý - Quốc lộ 21 - Bến xe Nam Định.
+Thời gian hoạt động: 5:00 - 18:30
+Tần suất: 30 - 45 phút/chuyến
+Giá vé tham khảo: 70.000 VNĐ
+
+Lưu ý: Các tuyến xe buýt liên tỉnh không được áp dụng vé tháng xe buýt nội đô Hà Nội. Hành khách sử dụng thẻ vé tháng bắt buộc phải mua vé lượt. Người cao tuổi không được miễn phí trên các tuyến này.

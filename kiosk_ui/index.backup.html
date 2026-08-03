@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Trạm Xe Buýt Thông Minh - Kiosk Tra Cứu</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%235b8cff'/%3E%3Crect x='5' y='6' width='14' height='9' rx='2' fill='white'/%3E%3Ccircle cx='8.5' cy='17' r='1.6' fill='white'/%3E%3Ccircle cx='15.5' cy='17' r='1.6' fill='white'/%3E%3C/svg%3E">
+
+    <!-- Local Offline Fonts -->
+    <link href="static/fonts/fonts.css" rel="stylesheet">
+
+    <!-- Leaflet Interactive GIS Map CSS -->
+    <link rel="stylesheet" href="static/libs/leaflet.css" />
+    <link rel="stylesheet" href="static/libs/leaflet-routing-machine.css" />
+
+    <style>
+
+        :root {
+            /* Base surfaces */
+            --bg-base: #08090b;
+            --panel: rgba(255, 255, 255, 0.035);
+            --panel-hover: rgba(255, 255, 255, 0.065);
+            --panel-solid: #101114;
+            --input-bg: rgba(255, 255, 255, 0.04);
+
+            /* Brand accent (indigo -> violet) */
+            --accent: #5b8cff;
+            --accent-2: #8b6bff;
+            --accent-soft: rgba(91, 140, 255, 0.16);
+            --accent-grad: linear-gradient(135deg, var(--accent), var(--accent-2));
+
+            /* Semantic colors */
+            --success: #22c58b;
+            --warning: #f2a93c;
+            --danger: #f2555b;
+
+            /* Text */
+            --text-1: #f4f4f6;
+            --text-2: #9b9ba6;
+            --text-3: #6a6a74;
+
+            /* Structure */
+            --border: rgba(255, 255, 255, 0.08);
+            --border-strong: rgba(255, 255, 255, 0.16);
+            --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 20px 60px -24px rgba(0, 0, 0, 0.65);
+            --shadow-pop: 0 12px 32px -10px rgba(0, 0, 0, 0.55);
+
+            --radius-xl: 26px;
+            --radius-lg: 18px;
+            --radius-md: 13px;
+            --radius-sm: 10px;
+            --radius-xs: 7px;
+
+            --ease: cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            background: var(--bg-base);
+            color: var(--text-1);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 16px;
+            position: relative;
+        }
+
+        svg { display: block; }
+
+        button, input {
+            font-family: inherit;
+            color: inherit;
+        }
+
+        button {
+            font: inherit;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+            border-radius: var(--radius-xs);
+        }
+
+        /* ---------------------------------------------------- */
+        /* Ambient background — soft, slow-drifting light blobs  */
+        /* ---------------------------------------------------- */
+        .ambient-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .ambient-bg::before,
+        .ambient-bg::after {
+            content: '';
+            position: absolute;
+            width: 46vw;
+            height: 46vw;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.16;
+        }
+
+        .ambient-bg::before {
+            top: -14vw;
+            left: -8vw;
+            background: radial-gradient(circle, var(--accent), transparent 70%);
+            animation: driftA 26s var(--ease) infinite alternate;
+        }
+
+        .ambient-bg::after {
+            bottom: -18vw;
+            right: -10vw;
+            background: radial-gradient(circle, var(--accent-2), transparent 70%);
+            animation: driftB 30s var(--ease) infinite alternate;
+        }
+
+        @keyframes driftA {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(4vw, 5vw) scale(1.12); }
+        }
+
+        @keyframes driftB {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-3vw, -4vw) scale(1.1); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .ambient-bg::before, .ambient-bg::after { animation: none; }
+            *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+        }
+
+        header, main {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ---------------------------------------------------- */
+        /* Top Kiosk Header Bar                                   */
+        /* ---------------------------------------------------- */
+        header {
+            background: rgba(8, 9, 11, 0.72);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .station-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .station-icon {
+            background: var(--accent-grad);
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 18px -4px rgba(91, 140, 255, 0.5);
+            flex-shrink: 0;
+        }
+
+        .station-icon svg { color: #fff; }
+
+        .station-info h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-1);
+            letter-spacing: 0.1px;
+        }
+
+        .station-info .status-line {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 3px;
+        }
+
+        .status-line .live-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 0 0 rgba(34, 197, 139, 0.6);
+            animation: livePulse 2.2s infinite;
+        }
+
+        @keyframes livePulse {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 139, 0.5); }
+            70% { box-shadow: 0 0 0 6px rgba(34, 197, 139, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 139, 0); }
+        }
+
+        .status-line span {
+            font-size: 0.78rem;
+            color: var(--text-2);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pill {
+            font-size: 0.83rem;
+            color: var(--text-2);
+            background: var(--panel);
+            border: 1px solid var(--border);
+            padding: 8px 15px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.15s var(--ease);
+        }
+
+        .pill svg { flex-shrink: 0; opacity: 0.85; }
+
+        .clock-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            color: var(--text-1);
+            font-variant-numeric: tabular-nums;
+        }
+
+        button.pill {
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+
+        button.pill:hover {
+            background: var(--panel-hover);
+            color: var(--text-1);
+            border-color: var(--border-strong);
+        }
+
+        button.pill:active { transform: scale(0.97); }
+
+        .speaker-toggle .icon-off { display: none; }
+        .speaker-toggle.muted .icon-on { display: none; }
+        .speaker-toggle.muted .icon-off { display: flex; }
+        .speaker-toggle.muted { color: var(--warning); border-color: rgba(242, 169, 60, 0.35); }
+        .speaker-toggle:not(.muted) { color: var(--accent); border-color: rgba(91, 140, 255, 0.3); }
+
+        /* Network Status Toggle Button */
+        .network-badge .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .network-badge.offline { color: var(--warning); border-color: rgba(242, 169, 60, 0.3); }
+        .network-badge.offline .status-dot { background: var(--warning); }
+        .network-badge.online { color: var(--success); border-color: rgba(34, 197, 139, 0.3); }
+        .network-badge.online .status-dot { background: var(--success); }
+
+        /* ---------------------------------------------------- */
+        /* Main Workspace Grid                                    */
+        /* ---------------------------------------------------- */
+        main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 300px 1fr 360px;
+            gap: 20px;
+            padding: 20px 32px 24px;
+            overflow: hidden;
+        }
+
+        .panel-base {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-panel);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .sidebar-panel { padding: 22px; gap: 22px; }
+        .chat-panel { }
+        .map-panel { }
+
+        .section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.1px;
+            color: var(--text-3);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        /* Voice Interaction Widget */
+        .voice-box {
+            background: rgba(0, 0, 0, 0.22);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 22px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: border-color 0.3s ease;
+        }
+
+        .voice-box.listening { border-color: rgba(242, 85, 91, 0.35); }
+
+        .mic-button {
+            width: 62px;
+            height: 62px;
+            border-radius: 50%;
+            background: var(--accent-grad);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s var(--ease), background 0.3s var(--ease), box-shadow 0.3s var(--ease);
+            box-shadow: 0 6px 20px -4px rgba(91, 140, 255, 0.45);
+        }
+
+        .mic-button:hover { transform: scale(1.06); }
+        .mic-button:active { transform: scale(0.97); }
+
+        .mic-button.listening {
+            background: var(--danger);
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+            box-shadow: none;
+        }
+
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(242, 85, 91, 0.55); }
+            70% { box-shadow: 0 0 0 18px rgba(242, 85, 91, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(242, 85, 91, 0); }
+        }
+
+        .wave-container {
+            display: flex;
+            gap: 4px;
+            height: 16px;
+            align-items: center;
+            margin-top: 14px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .voice-box.listening .wave-container { opacity: 1; }
+
+        .wave-bar {
+            width: 3px;
+            background: var(--text-3);
+            border-radius: 2px;
+            height: 4px;
+        }
+
+        .voice-box.listening .wave-bar {
+            background: var(--danger);
+            animation: wave 0.8s infinite alternate ease-in-out;
+        }
+
+        .voice-box.listening .wave-bar:nth-child(1) { animation-delay: 0.1s; }
+        .voice-box.listening .wave-bar:nth-child(2) { animation-delay: 0.3s; }
+        .voice-box.listening .wave-bar:nth-child(3) { animation-delay: 0.0s; }
+        .voice-box.listening .wave-bar:nth-child(4) { animation-delay: 0.2s; }
+
+        @keyframes wave {
+            0% { height: 4px; }
+            100% { height: 16px; }
+        }
+
+        .voice-status {
+            font-size: 0.8rem;
+            color: var(--text-2);
+            margin-top: 12px;
+        }
+
+        /* Preset Query Cards */
+        .preset-list {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .preset-pill {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+            font-size: 0.87rem;
+            color: var(--text-2);
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.15s var(--ease);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .preset-pill:hover {
+            background: var(--panel-hover);
+            color: var(--text-1);
+            border-color: var(--border-strong);
+        }
+
+        .preset-pill:active { transform: scale(0.985); }
+
+        .preset-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: var(--radius-xs);
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--accent);
+        }
+
+        .preset-text { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .preset-text span:first-child { line-height: 1.25; }
+
+        .preset-tag {
+            font-size: 0.62rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-3);
+            padding: 3px 7px;
+            border-radius: 5px;
+            flex-shrink: 0;
+        }
+
+        /* ---------------------------------------------------- */
+        /* Middle Chat Panel — Conversation                       */
+        /* ---------------------------------------------------- */
+        .chat-header {
+            padding: 16px 22px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.12);
+        }
+
+        .chat-header .chat-header-title {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .chat-header-title .badge-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            background: var(--accent-soft);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-header h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 500;
+            color: var(--text-1);
+        }
+
+        .clear-chat-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-3);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 8px;
+            border-radius: var(--radius-xs);
+        }
+
+        .clear-chat-btn:hover { color: var(--text-1); background: var(--panel-hover); }
+
+        .chat-history {
+            flex: 1;
+            padding: 22px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            scroll-behavior: smooth;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+        .msg-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            animation: fadeIn 0.35s var(--ease);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .msg-row.user { flex-direction: row-reverse; }
+
+        .msg-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            background: var(--accent-grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .msg-col {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            max-width: 82%;
+            min-width: 0;
+        }
+
+        .msg-row.user .msg-col { align-items: flex-end; }
+
+        .msg-name {
+            font-size: 0.72rem;
+            color: var(--text-3);
+            padding: 0 3px;
+            font-weight: 500;
+        }
+
+        .msg-bubble {
+            padding: 13px 17px;
+            line-height: 1.55;
+            font-size: 0.94rem;
+            width: 100%;
+        }
+
+        .msg-bubble p { white-space: pre-wrap; }
+
+        .msg-row.user .msg-bubble {
+            background: var(--accent-grad);
+            color: #fff;
+            border-radius: 16px 16px 4px 16px;
+            box-shadow: 0 6px 16px -6px rgba(91, 140, 255, 0.45);
+        }
+
+        .msg-row.ai .msg-bubble {
+            background: rgba(255, 255, 255, 0.045);
+            border: 1px solid var(--border);
+            color: var(--text-1);
+            border-radius: 16px 16px 16px 4px;
+        }
+
+        .typing-indicator { display: flex; gap: 5px; padding: 3px 0; }
+        .typing-indicator span {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--text-2);
+            animation: typingBounce 1s infinite ease-in-out;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-5px); opacity: 1; }
+        }
+
+        .msg-meta {
+            font-size: 0.74rem;
+            color: var(--text-3);
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .meta-badge {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 3px 9px;
+            border-radius: 6px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .meta-badge.mode-online { color: var(--success); background: rgba(34, 197, 139, 0.1); }
+        .meta-badge.mode-offline { color: var(--warning); background: rgba(242, 169, 60, 0.1); }
+
+        .meta-item { display: flex; align-items: center; gap: 5px; }
+
+        /* Route Recommendation Grid */
+        .routes-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 13px;
+        }
+
+        .route-card {
+            background: rgba(0, 0, 0, 0.22);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: var(--radius-sm);
+            padding: 13px 14px;
+            transition: background 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.15s var(--ease);
+            cursor: pointer;
+        }
+
+        .route-card:hover {
+            background: rgba(255, 255, 255, 0.035);
+            border-color: var(--border-strong);
+            transform: translateY(-1px);
+        }
+
+        .route-card:active { transform: translateY(0) scale(0.995); }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+
+        .route-badge {
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 3px 9px;
+            border-radius: 6px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .fare-badge {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-1);
+            font-weight: 500;
+            font-size: 0.78rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+
+        .card-title {
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 7px;
+            color: var(--text-1);
+        }
+
+        .card-body {
+            font-size: 0.83rem;
+            color: var(--text-2);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .card-body .row-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-3);
+            flex-shrink: 0;
+        }
+
+        .card-action {
+            margin-top: 10px;
+            font-size: 0.76rem;
+            font-weight: 500;
+            color: var(--accent);
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* ---------------------------------------------------- */
+        /* Bottom Chat Input Form                                 */
+        /* ---------------------------------------------------- */
+        .chat-input-bar {
+            padding: 18px 22px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.12);
+        }
+
+        .input-wrap {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrap svg {
+            position: absolute;
+            left: 15px;
+            color: var(--text-3);
+            pointer-events: none;
+        }
+
+        .text-input {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 13px 16px 13px 42px;
+            color: var(--text-1);
+            font-size: 0.94rem;
+            outline: none;
+            transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .text-input:focus {
+            border-color: rgba(91, 140, 255, 0.5);
+            background: rgba(255, 255, 255, 0.055);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .text-input::placeholder { color: var(--text-3); }
+
+        .send-button {
+            background: var(--accent-grad);
+            border: none;
+            color: #fff;
+            padding: 0 22px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: transform 0.15s var(--ease), opacity 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 6px 16px -6px rgba(91, 140, 255, 0.5);
+        }
+
+        .send-button:hover { transform: translateY(-1px); }
+        .send-button:active { transform: translateY(0) scale(0.97); }
+
+        .send-button:disabled, .text-input:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ---------------------------------------------------- */
+        /* Right Panel — GIS Map                                  */
+        /* ---------------------------------------------------- */
+        .map-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.12);
+            z-index: 500;
+        }
+
+        .map-header .map-header-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .map-header h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .map-header svg { color: var(--accent); }
+
+        #active-route-label {
+            font-size: 0.76rem;
+            color: var(--text-2);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border-radius: 999px;
+        }
+
+        #bus-map {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+        }
+
+        /* Minimal Leaflet Dark Filter */
+        .leaflet-tile-pane {
+            filter: grayscale(100%) invert(100%) contrast(90%) brightness(85%);
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: var(--text-2);
+            padding: 24px;
+        }
+
+        .empty-icon {
+            width: 68px;
+            height: 68px;
+            border-radius: 20px;
+            background: var(--accent-soft);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+        }
+
+        .empty-state h2 {
+            color: var(--text-1);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .empty-state p {
+            margin-top: 8px;
+            font-size: 0.92rem;
+            max-width: 340px;
+            color: var(--text-2);
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 9999;
+        }
+
+        .toast-item {
+            background: rgba(16, 17, 20, 0.92);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--border);
+            color: var(--text-1);
+            padding: 11px 18px;
+            border-radius: 999px;
+            box-shadow: var(--shadow-pop);
+            font-size: 0.84rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            position: relative;
+            overflow: hidden;
+            animation: toastSlide 0.35s var(--ease);
+        }
+
+        .toast-item .toast-icon { flex-shrink: 0; display: flex; }
+        .toast-item.info .toast-icon { color: var(--accent); }
+        .toast-item.success .toast-icon { color: var(--success); }
+        .toast-item.warning .toast-icon { color: var(--warning); }
+        .toast-item.error .toast-icon { color: var(--danger); }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0; left: 0;
+            height: 2px;
+            width: 100%;
+            background: currentColor;
+            opacity: 0.35;
+            animation: shrinkBar 4s linear forwards;
+        }
+
+        @keyframes shrinkBar { from { width: 100%; } to { width: 0%; } }
+
+        @keyframes toastSlide {
+            from { opacity: 0; transform: translateY(-16px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Responsive Layout adjustments */
+        @media (max-width: 1200px) {
+            main {
+                grid-template-columns: 270px 1fr 300px;
+                gap: 16px;
+                padding: 16px 20px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            main {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr 350px;
+                overflow-y: auto;
+            }
+            .sidebar-panel { order: 2; max-height: 280px; }
+            .chat-panel { order: 1; min-height: 50vh; }
+            .map-panel { order: 3; min-height: 350px; }
+            body { overflow: auto; }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="ambient-bg" aria-hidden="true"></div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Top Navigation Header -->
+    <header>
+        <div class="station-brand">
+            <div class="station-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3.5" y="5" width="17" height="11" rx="2.5"></rect>
+                    <path d="M3.5 10.5h17"></path>
+                    <path d="M7 16v2M17 16v2"></path>
+                    <circle cx="7.5" cy="18.5" r="1.4"></circle>
+                    <circle cx="16.5" cy="18.5" r="1.4"></circle>
+                </svg>
+            </div>
+            <div class="station-info">
+                <h1 id="station-title-display">TRẠM SỐ 01 - BẾN XE MỸ ĐÌNH</h1>
+                <div class="status-line">
+                    <span class="live-dot"></span>
+                    <span>Hệ thống Tra cứu Giao thông Công cộng · Đang hoạt động</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="header-controls">
+            <div class="pill">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.3"></circle></svg>
+                <span>Mỹ Đình, Hà Nội</span>
+            </div>
+
+            <button class="pill speaker-toggle" id="speaker-btn" onclick="toggleSpeaker()" aria-label="Bật tắt đọc giọng nói" title="Bật/tắt đọc giọng nói">
+                <span class="icon-on" style="display:flex;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="4,9 8,9 12,5 12,19 8,15 4,15"></polygon><path d="M16 8a5 5 0 0 1 0 8"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
+                </span>
+                <span class="icon-off">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="4,9 8,9 12,5 12,19 8,15 4,15"></polygon><path d="M17 9l5 6M22 9l-5 6"></path></svg>
+                </span>
+                <span id="speaker-label">Giọng đọc</span>
+            </button>
+
+            <div class="pill clock-display" id="live-clock">12:00:00</div>
+
+            <!-- System Status Badge -->
+            <div class="pill network-badge online" id="net-toggle-btn" aria-label="Trạng thái mạng" title="Hệ thống trực tuyến">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a11 11 0 0 1 14 0"></path><path d="M8 16a6.5 6.5 0 0 1 8 0"></path><circle cx="12" cy="19" r="1"></circle></svg>
+                <span class="status-dot" style="background-color: var(--success); box-shadow: 0 0 0 0 rgba(34, 197, 139, 0.6); animation: livePulse 2.2s infinite;"></span>
+                <span id="net-status-text">ONLINE</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Workspace -->
+    <main>
+        <!-- Sidebar Controls (Left) -->
+        <div class="sidebar-panel panel-base">
+            <div>
+                <div class="section-title">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v3"></path></svg>
+                    Tương tác giọng nói
+                </div>
+                <div class="voice-box" id="voice-box">
+                    <button class="mic-button" id="mic-btn" onclick="toggleVoiceRecording()" aria-label="Bấm để nói" title="Chạm để nói">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v3"></path></svg>
+                    </button>
+                    <div class="wave-container">
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                    </div>
+                    <p class="voice-status" id="voice-status">Chạm mic để bắt đầu nói</p>
+                </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:12px; flex:1; min-height:0;">
+                <div class="section-title">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a2 2 0 0 1-1 1.73l-7 4a2 2 0 0 1-2 0l-7-4a2 2 0 0 1-1-1.73v-3a2 2 0 0 1 1-1.73l7-4a2 2 0 0 1 2 0l7 4a2 2 0 0 1 1 1.73Z"></path></svg>
+                    Tra cứu nhanh mẫu
+                </div>
+                <div class="preset-list">
+                    <button class="preset-pill" onclick="sendPreset('Đi từ Bến xe Mỹ Đình đến Đại học Bách Khoa bằng xe buýt nào?')">
+                        <span class="preset-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></span>
+                        <span class="preset-text"><span>Mỹ Đình ➔ Bách Khoa</span></span>
+                        <span class="preset-tag">Tuyến thẳng</span>
+                    </button>
+                    <button class="preset-pill" onclick="sendPreset('Xe buýt nào đi qua Hồ Gươm?')">
+                        <span class="preset-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.3"></circle></svg></span>
+                        <span class="preset-text"><span>Xe buýt qua Hồ Gươm</span></span>
+                        <span class="preset-tag">Địa danh</span>
+                    </button>
+                    <button class="preset-pill" onclick="sendPreset('Bảng giá vé xe buýt và vé tháng?')">
+                        <span class="preset-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5V6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v2.5a1.8 1.8 0 0 0 0 3.5V15a1.8 1.8 0 0 0 0 3.5V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-.5a1.8 1.8 0 0 0 0-3.5v-3a1.8 1.8 0 0 0 0-3.5Z"></path><path d="M9 5v14" stroke-dasharray="2 3"></path></svg></span>
+                        <span class="preset-text"><span>Giá vé & vé tháng</span></span>
+                        <span class="preset-tag">Quy định</span>
+                    </button>
+                    <button class="preset-pill" onclick="sendPreset('Tuyến Metro Cát Linh Hà Đông giá vé thế nào?')">
+                        <span class="preset-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="13" rx="3"></rect><path d="M5 11h14"></path><path d="M9 20l-2 2M15 20l2 2"></path><circle cx="8.5" cy="14" r="1"></circle><circle cx="15.5" cy="14" r="1"></circle></svg></span>
+                        <span class="preset-text"><span>Metro Cát Linh - Hà Đông</span></span>
+                        <span class="preset-tag">Đường sắt</span>
+                    </button>
+                    <button class="preset-pill" onclick="sendPreset('Tuyến xe buýt số 999 chạy giờ nào?')">
+                        <span class="preset-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-6a3 3 0 0 1 3-3h1"></path><path d="M8 12V4"></path><path d="M8 4l8 3-8 3"></path></svg></span>
+                        <span class="preset-text"><span>Tuyến 999 (Test Fallback)</span></span>
+                        <span class="preset-tag">Kiểm thử</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle Chat Panel -->
+        <div class="chat-panel panel-base">
+            <div class="chat-header">
+                <div class="chat-header-title">
+                    <span class="badge-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.7 7.4L4 20l1.2-4.2A8.5 8.5 0 1 1 21 11.5Z"></path></svg>
+                    </span>
+                    <h2>Trò chuyện với trạm xe buýt</h2>
+                </div>
+                <button class="clear-chat-btn" onclick="clearChat()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"></path><path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"></path><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"></path></svg>
+                    Xóa cuộc hội thoại
+                </button>
+            </div>
+
+            <div class="chat-history" id="chat-history">
+                <div class="empty-state" id="empty-state">
+                    <div class="empty-icon">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.3"></circle></svg>
+                    </div>
+                    <h2>Xin chào! Bạn muốn đi đâu?</h2>
+                    <p>Hãy nhấn nút micro để nói hoặc chọn một câu hỏi mẫu bên trái để tra cứu lộ trình xe buýt.</p>
+                </div>
+            </div>
+
+            <div class="chat-input-bar">
+                <div class="input-wrap">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                    <input type="text" class="text-input" id="user-input" placeholder="Nhập câu hỏi của bạn (Ví dụ: Xe buýt đi Bách Khoa...)" onkeydown="handleKeyPress(event)">
+                </div>
+                <button class="send-button" id="send-btn" onclick="sendMessage()">
+                    <span>Gửi</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4 20-7z"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Panel - Interactive Map -->
+        <div class="map-panel panel-base">
+            <div class="map-header">
+                <div class="map-header-title">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5 9 4l6 2.5 6-2.5v15l-6 2.5L9 19l-6 2.5Z"></path><path d="M9 4v15"></path><path d="M15 6.5v15"></path></svg>
+                    <h3>Bản đồ lộ trình GIS</h3>
+                </div>
+                <span id="active-route-label">Trạm Mỹ Đình</span>
+            </div>
+            <div id="bus-map"></div>
+        </div>
+    </main>
+
+    <!-- Leaflet & Routing JS -->
+    <script src="static/libs/leaflet.js"></script>
+    <script src="static/libs/leaflet-routing-machine.js"></script>
+
+    <script>
+        let isOfflineMode = true;
+        let isListening = false;
+        let speakerEnabled = true;
+        let recognition = null;
+        let map = null;
+        let routePolyline = null;
+        let routingControl = null;
+        let mapMarkers = [];
+        window.networkMode = 'ONLINE';
+
+        const ACCENT_COLOR = '#5b8cff';
+        const ROUTE_PALETTE = ['#5b8cff', '#22c58b', '#f2a93c', '#8b6bff', '#f2555b', '#2dd4bf'];
+
+        function routeColor(id) {
+            let hash = 0;
+            for (const ch of String(id)) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+            return ROUTE_PALETTE[hash % ROUTE_PALETTE.length];
+        }
+
+        // Shared inline icon set for dynamically-generated markup
+        const ICONS = {
+            checkCircle: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="m8.5 12.2 2.4 2.4 4.6-5"></path></svg>',
+            alertTriangle: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 21.5 20h-19Z"></path><path d="M12 9.5v4.2"></path><circle cx="12" cy="17" r="0.6" fill="currentColor"></circle></svg>',
+            xCircle: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="m9 9 6 6M15 9l-6 6"></path></svg>',
+            info: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5.5"></path><circle cx="12" cy="8" r="0.6" fill="currentColor"></circle></svg>',
+            clock: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5.5l3.5 2"></path></svg>',
+            shuffle: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3.5a5 5 0 0 1 4 2l1 1.3"></path><path d="M4 17h3.5a5 5 0 0 0 4-2l1-1.3"></path><path d="M17 4l3 3-3 3"></path><path d="M17 14l3 3-3 3"></path><path d="M12.5 12l1.5 2a5 5 0 0 0 4 2H20"></path><path d="M20 7h-2a5 5 0 0 0-4 2"></path></svg>',
+            direct: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"></path></svg>',
+            arrowRight: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg>',
+            zap: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 14h6l-1 8 9-13h-6z"></path></svg>',
+            mapOff: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5 9 4l6 2.5v3"></path><path d="M9 4v6"></path><path d="M21 8v13l-6-2.5-6 2.5-2.5-1"></path><path d="M2 2l20 20"></path></svg>'
+        };
+
+        // Hanoi Bus Stop Coordinates
+        const STOPS_GEO = {
+            "Mỹ Đình": [21.0285, 105.7782],
+            "Cầu Giấy": [21.0362, 105.8015],
+            "Bách Khoa": [21.0055, 105.8430],
+            "Hồ Gươm": [21.0285, 105.8542],
+            "Yên Nghĩa": [20.9575, 105.7485],
+            "Giáp Bát": [20.9815, 105.8415],
+            "Ga Cát Linh": [21.0275, 105.8285],
+            "Gia Lâm": [21.0505, 105.8752],
+            "Nội Bài": [21.2187, 105.8042],
+            "Hà Đông": [20.9725, 105.7750],
+            "Time City": [20.9942, 105.8672],
+            "Nhà hát lớn": [21.0242, 105.8572],
+            "Royal City": [21.0031, 105.8160],
+            "BX Nước Ngầm": [20.9632, 105.8423]
+        };
+
+        // Toast Notification System
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast-item ${type}`;
+
+            let icon = ICONS.info;
+            if (type === 'success') icon = ICONS.checkCircle;
+            if (type === 'warning') icon = ICONS.alertTriangle;
+            if (type === 'error') icon = ICONS.xCircle;
+
+            toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${message}</span><span class="toast-progress"></span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-12px) scale(0.96)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Initialize Leaflet Interactive Map
+        function initMap() {
+            if (typeof L === 'undefined') {
+                console.warn("Leaflet Map Library is not loaded.");
+                const mapPanel = document.getElementById('bus-map');
+                if (mapPanel) {
+                    mapPanel.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">${ICONS.mapOff}</div>
+                            <h2>Bản đồ ngoại tuyến</h2>
+                            <p>Không thể tải bản đồ trực tuyến. Các chức năng tìm đường vẫn hoạt động bình thường 100%.</p>
+                        </div>
+                    `;
+                }
+                return;
+            }
+
+            map = L.map('bus-map', { zoomControl: false }).setView([21.0285, 105.8042], 12);
+            
+            L.tileLayer('http://mt0.google.com/vt/lyrs=m&hl=vi&x={x}&y={y}&z={z}', {
+                maxZoom: 18,
+                attribution: '© Google Maps | Smart Bus Stop'
+            }).addTo(map);
+
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+            // Plot key bus stops
+            for (const [name, coords] of Object.entries(STOPS_GEO)) {
+                const marker = L.marker(coords).addTo(map)
+                    .bindPopup(`<b>Trạm xe buýt ${name}</b><br>Trạm dừng kết nối AI`);
+                mapMarkers.push(marker);
+            }
+        }
+
+        // Geocode dynamic stops
+        async function getCoords(name) {
+            if (STOPS_GEO[name]) return STOPS_GEO[name];
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(name + " Hà Nội")}&format=json&limit=1`);
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+                }
+            } catch (e) { console.error("Geocoding error:", e); }
+            return null;
+        }
+
+        // Draw Route Line on Map
+        async function drawRouteOnMap(originName, destName, itineraryStr = null) {
+            if (typeof L === 'undefined' || !map) return;
+
+            if (routePolyline) { map.removeLayer(routePolyline); routePolyline = null; }
+            if (routingControl) { map.removeControl(routingControl); routingControl = null; }
+
+            const labelEl = document.getElementById('active-route-label');
+            if (labelEl) labelEl.innerText = `Đang tải bản đồ chi tiết...`;
+
+            let startCoords = await getCoords(originName);
+            let endCoords = await getCoords(destName);
+
+            // Fallback if not found
+            if (!startCoords) startCoords = STOPS_GEO["Mỹ Đình"] || [21.0285, 105.7782];
+            if (!endCoords) endCoords = STOPS_GEO["Bách Khoa"] || [21.0055, 105.8430];
+            
+            let waypoints = [L.latLng(startCoords[0], startCoords[1])];
+
+            if (itineraryStr) {
+                const stops = itineraryStr.split(/[-<>]/).map(s => s.trim()).filter(s => s.length > 2);
+                if (stops.length > 3) {
+                    const midIndex1 = Math.floor(stops.length / 3);
+                    const midIndex2 = Math.floor((stops.length * 2) / 3);
+                    const midCoords1 = await getCoords(stops[midIndex1]);
+                    if (midCoords1) waypoints.push(L.latLng(midCoords1[0], midCoords1[1]));
+                    const midCoords2 = await getCoords(stops[midIndex2]);
+                    if (midCoords2) waypoints.push(L.latLng(midCoords2[0], midCoords2[1]));
+                }
+            }
+
+            waypoints.push(L.latLng(endCoords[0], endCoords[1]));
+
+            if (labelEl) labelEl.innerText = `${originName} ➔ ${destName}`;
+
+            // We use the shortest path (dotted line) and calculate distance as requested.
+            drawShortestPath(waypoints, originName, destName);
+        }
+
+        function drawShortestPath(waypoints, originName, destName) {
+            if (routingControl) { map.removeControl(routingControl); routingControl = null; }
+            if (routePolyline) { map.removeLayer(routePolyline); routePolyline = null; }
+            
+            // Clean up old markers
+            mapMarkers.forEach(m => map.removeLayer(m));
+            mapMarkers = [];
+            
+            let totalDistance = 0;
+            
+            // Add Markers and calculate distance
+            waypoints.forEach((wp, index) => {
+                let title = "Trạm trung gian";
+                if (index === 0) title = originName || "Điểm đi";
+                if (index === waypoints.length - 1) title = destName || "Điểm đến";
+                
+                const marker = L.marker(wp).addTo(map).bindPopup(title);
+                mapMarkers.push(marker);
+                
+                if (index > 0) {
+                    totalDistance += waypoints[index - 1].distanceTo(wp);
+                }
+            });
+            
+            // Draw continuous dotted line
+            routePolyline = L.polyline(waypoints, { 
+                color: ACCENT_COLOR, 
+                weight: 5, 
+                opacity: 0.85, 
+                dashArray: '10, 10' 
+            }).addTo(map);
+            
+            map.fitBounds(routePolyline.getBounds(), { padding: [50, 50] });
+            
+            // Hiển thị khoảng cách lên góc bản đồ
+            const labelEl = document.getElementById('active-route-label');
+            if (labelEl) {
+                const distanceKm = (totalDistance / 1000).toFixed(1);
+                labelEl.innerText = `${originName} ➔ ${destName} (Khoảng cách: ${distanceKm} km)`;
+            }
+        }
+
+        window.onload = function() {
+            initMap();
+            showToast("Hệ thống trạm xe buýt đã sẵn sàng phục vụ", "success");
+        };
+
+        // Initialize Web Speech API STT
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'vi-VN';
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('user-input').value = transcript;
+                sendMessage();
+                stopVoiceRecording();
+            };
+
+            recognition.onerror = (e) => {
+                console.error("SpeechRecognition error: ", e);
+                showToast("Không thể nhận diện giọng nói (Yêu cầu kết nối Internet). Vui lòng nhập bằng bàn phím!", "warning");
+                stopVoiceRecording();
+            };
+            recognition.onend = () => stopVoiceRecording();
+        }
+
+        // Live Clock Update
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('live-clock').innerText = now.toLocaleTimeString('vi-VN');
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Toggle Speaker Audio TTS
+        function toggleSpeaker() {
+            speakerEnabled = !speakerEnabled;
+            const btn = document.getElementById('speaker-btn');
+            const label = document.getElementById('speaker-label');
+            btn.classList.toggle('muted', !speakerEnabled);
+            if (speakerEnabled) {
+                label.innerText = 'Giọng đọc';
+                showToast("Đã bật đọc câu trả lời bằng giọng nói", "info");
+            } else {
+                label.innerText = 'Đã tắt tiếng';
+                window.speechSynthesis.cancel();
+                showToast("Đã tắt đọc câu trả lời bằng giọng nói", "warning");
+            }
+        }
+
+        // Toggle Voice Recording
+        function toggleVoiceRecording() {
+            if (!recognition) {
+                showToast("Trình duyệt không hỗ trợ nhận diện giọng nói. Hãy nhập bằng bàn phím!", "warning");
+                return;
+            }
+
+            const micBtn = document.getElementById('mic-btn');
+            const voiceBox = document.getElementById('voice-box');
+            const voiceStatus = document.getElementById('voice-status');
+
+            if (!isListening) {
+                isListening = true;
+                micBtn.classList.add('listening');
+                voiceBox.classList.add('listening');
+                voiceStatus.innerText = "Đang lắng nghe... Hãy nói ngay!";
+                showToast("Đang lắng nghe giọng nói...", "info");
+                recognition.start();
+            } else {
+                stopVoiceRecording();
+            }
+        }
+
+        function stopVoiceRecording() {
+            isListening = false;
+            const micBtn = document.getElementById('mic-btn');
+            const voiceBox = document.getElementById('voice-box');
+            const voiceStatus = document.getElementById('voice-status');
+            micBtn.classList.remove('listening');
+            voiceBox.classList.remove('listening');
+            voiceStatus.innerText = "Chạm mic để bắt đầu nói";
+            if (recognition) recognition.stop();
+        }
+
+        // Lược bỏ toggleNetworkMode vì hệ thống đã thuần Online
+
+        // Text-To-Speech (TTS)
+        function speakVietnamese(text) {
+            if (!speakerEnabled) return;
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                // Strip all emojis, markdown symbols, and bullets so TTS reads clear Vietnamese text
+                const cleanText = text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{2B50}\u{2B55}\u{203C}\u{2049}\u{25AA}\u{25AB}\u{25B6}\u{25C0}\u{25FB}-\u{25FE}]/gu, '')
+                                      .replace(/[*#\-\•]/g, ' ')
+                                      .replace(/\s+/g, ' ')
+                                      .trim()
+                                      .slice(0, 250);
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'vi-VN';
+                utterance.rate = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        function sendPreset(text) {
+            document.getElementById('user-input').value = text;
+            sendMessage();
+        }
+
+        function clearChat() {
+            const chatHistory = document.getElementById('chat-history');
+            chatHistory.innerHTML = `
+                <div class="empty-state" id="empty-state">
+                    <div class="empty-icon">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.3"></circle></svg>
+                    </div>
+                    <h2>Xin chào! Bạn muốn đi đâu?</h2>
+                    <p>Hãy nhấn nút micro để nói hoặc chọn một câu hỏi mẫu bên trái để tra cứu lộ trình xe buýt.</p>
+                </div>
+            `;
+            showToast("Đã xóa lịch sử trò chuyện", "info");
+        }
+
+        // Send Message Handler
+        async function sendMessage() {
+            const inputEl = document.getElementById('user-input');
+            const sendBtn = document.getElementById('send-btn');
+            const query = inputEl.value.trim();
+            if (!query) return;
+
+            inputEl.value = '';
+            inputEl.disabled = true;
+            sendBtn.disabled = true;
+
+            const emptyState = document.getElementById('empty-state');
+            if (emptyState) emptyState.style.display = 'none';
+
+            const chatHistory = document.getElementById('chat-history');
+            const now = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
+            // Render User Message
+            const userRow = document.createElement('div');
+            userRow.className = 'msg-row user';
+            userRow.innerHTML = `
+                <div class="msg-col">
+                    <div class="msg-bubble"></div>
+                </div>
+            `;
+            userRow.querySelector('.msg-bubble').innerText = query;
+            chatHistory.appendChild(userRow);
+
+            // Render AI Message Skeleton
+            const aiRow = document.createElement('div');
+            aiRow.className = 'msg-row ai';
+            aiRow.innerHTML = `
+                <div class="msg-avatar">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="11" rx="2.5"></rect><path d="M3.5 10.5h17"></path><circle cx="7.5" cy="18.5" r="1.4"></circle><circle cx="16.5" cy="18.5" r="1.4"></circle></svg>
+                </div>
+                <div class="msg-col">
+                    <span class="msg-name">Trạm xe buýt · ${now}</span>
+                    <div class="msg-bubble">
+                        <div class="typing-indicator"><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+            `;
+            chatHistory.appendChild(aiRow);
+            const aiBubble = aiRow.querySelector('.msg-bubble');
+
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            try {
+                const response = await fetch('http://localhost:8000/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: query, force_offline: isOfflineMode })
+                });
+
+                const data = await response.json();
+
+                let formattedReply = data.reply
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/\n/g, '<br>');
+
+                let htmlContent = `<p>${formattedReply}</p>`;
+
+                if (data.recommendations && data.recommendations.length > 0) {
+                    htmlContent += '<div class="routes-grid">';
+                    data.recommendations.forEach(r => {
+                        let badgeId = r.route_id.replace('->', '➔');
+                        const color = routeColor(r.route_id);
+                        htmlContent += `
+                            <div class="route-card" style="border-left-color:${color};" tabindex="0" role="button" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" onclick="drawRouteOnMap('${r.board_stop}', '${r.alight_stop}', '${r.itinerary || ''}')">
+                                <div class="card-header">
+                                    <span class="route-badge" style="background:${color};">${badgeId}</span>
+                                    <span class="fare-badge">${r.fare_vnd.toLocaleString('vi-VN')} VNĐ</span>
+                                </div>
+                                <div class="card-title">${r.route_name}</div>
+                                <div class="card-body">
+                                    <span class="row-icon">${ICONS.clock} Giờ chạy: ${r.operating_hours}</span>
+                                    <span class="row-icon">${ICONS.arrowRight} Từ ${r.board_stop} đến ${r.alight_stop}</span>
+                                    <span class="row-icon">${r.transfer_stop ? `${ICONS.shuffle} Đổi xe tại: ${r.transfer_stop}` : `${ICONS.direct} Đi thẳng không chuyển tuyến`}</span>
+                                </div>
+                                <div class="card-action">Xem trên bản đồ ${ICONS.arrowRight}</div>
+                            </div>
+                        `;
+                    });
+                    htmlContent += '</div>';
+
+                    // Trigger map polyline for top route
+                    drawRouteOnMap(data.recommendations[0].board_stop, data.recommendations[0].alight_stop, data.recommendations[0].itinerary || '');
+                }
+
+                const sourcesText = data.sources && data.sources.length ? data.sources.join(', ') : null;
+                const isOnlineReply = data.mode === 'TRỰC_TUYẾN';
+                htmlContent += `
+                    <div class="msg-meta">
+                        <span class="meta-badge ${isOnlineReply ? 'mode-online' : 'mode-offline'}">${data.mode}</span>
+                        <span class="meta-item">${ICONS.zap} ${data.processing_time_ms} ms</span>
+                        ${sourcesText ? `<span class="meta-item">Nguồn: ${sourcesText}</span>` : ''}
+                    </div>
+                `;
+
+                aiBubble.innerHTML = htmlContent;
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+
+                let ttsText = data.reply;
+                if (data.recommendations && data.recommendations.length > 0) {
+                    let rName = data.recommendations[0].route_name;
+                    rName = rName.replace('Google Maps: ', '');
+                    rName = rName.replace(/ -> /g, ' rồi chuyển sang ');
+                    rName = rName.replace(/ - /g, ' rồi chuyển sang ');
+                    // Chỉ đọc thông tin tuyến xe, bỏ qua các chi tiết khác để tránh TTS đọc sai/dài dòng
+                    ttsText = `Chuyến xe buýt phù hợp nhất là: ${rName}`;
+                }
+                speakVietnamese(ttsText);
+
+            } catch (err) {
+                console.error("Chat Error:", err);
+                showToast("Lỗi kết nối tới máy chủ!", "error");
+                aiBubble.innerHTML = `<p style="color: var(--danger)">Lỗi hệ thống: Không thể kết nối tới máy chủ. Vui lòng kiểm tra lại dịch vụ.</p>`;
+            } finally {
+                inputEl.disabled = false;
+                sendBtn.disabled = false;
+                inputEl.focus();
+            }
+        }
+    </script>
+</body>
+</html>

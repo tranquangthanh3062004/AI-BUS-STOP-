@@ -1,0 +1,55 @@
+=== KẾT NỐI XE BUÝT VÀ ĐƯỜNG SẮT ĐÔ THỊ (METRO) HÀ NỘI ===
+
+1. TUYẾN METRO 2A: CÁT LINH - HÀ ĐÔNG
+- Ga Cát Linh: 
+  + Các tuyến buýt kết nối: 18, 22A, 23, 25, 38, 49, 90, 99.
+  + Điểm dừng cách ga: 50m - 100m trên đường Giảng Võ và Cát Linh.
+- Ga La Thành:
+  + Các tuyến buýt kết nối: 23, 30, 49, 99.
+- Ga Thái Hà:
+  + Các tuyến buýt kết nối: 12, 26, 30, 35A, 84.
+- Ga Láng:
+  + Các tuyến buýt kết nối: 16, 24, 27.
+- Ga Thượng Đình:
+  + Các tuyến buýt kết nối: 01, 02, 19, 21A, 27, 44, E01, E04, E09.
+  + Vị trí: Chợ Ngã Tư Sở.
+- Ga Vành Đai 3:
+  + Các tuyến buýt kết nối: 01, 02, 21A, 22C, 27, 39.
+- Ga Phùng Khoang:
+  + Các tuyến buýt kết nối: 01, 02, 19, 21A, 27, 39, E04, E06.
+- Ga Văn Quán:
+  + Các tuyến buýt kết nối: 01, 02, 19, 21A, 27, 39, 85, 103A, 103B.
+- Ga Hà Đông (Bến xe Hà Đông cũ):
+  + Các tuyến buýt kết nối: 01, 02, 21A, 27, 33, 89.
+- Ga La Khê:
+  + Các tuyến buýt kết nối: 01, 02, 21A, 27, 33, BRT01.
+- Ga Văn Khê:
+  + Các tuyến buýt kết nối: 01, 02, 21A, 27, 33, BRT01.
+- Ga Yên Nghĩa:
+  + Các tuyến buýt kết nối: Nằm trong Bến xe Yên Nghĩa, kết nối với tất cả các tuyến buýt tại bến (01, 02, 21A, 27, 33, 62, 72, 77, 89, 91, 102, 105, 114, 157, BRT01).
+
+2. TUYẾN METRO 3: NHỔN - GA HÀ NỘI
+- Ga Nhổn:
+  + Các tuyến buýt kết nối: Điểm trung chuyển Nhổn (20A, 20B, 29, 32, 49, 57, 117).
+- Ga Minh Khai:
+  + Các tuyến buýt kết nối: 29, 32, 57.
+- Ga Phú Diễn:
+  + Các tuyến buýt kết nối: 05, 29, 32.
+- Ga Cầu Diễn:
+  + Các tuyến buýt kết nối: 29, 32, 97.
+- Ga Lê Đức Thọ:
+  + Các tuyến buýt kết nối: 26, 29, 32.
+- Ga Đại học Quốc gia Hà Nội:
+  + Các tuyến buýt kết nối: 16, 20A, 26, 27, 32, 34, 39, 49.
+- Ga Chùa Hà:
+  + Các tuyến buýt kết nối: 07, 16, 20A, 26, 27, 32, 34, 49.
+- Ga Cầu Giấy:
+  + Các tuyến buýt kết nối: Điểm trung chuyển Cầu Giấy (07, 09, 16, 20A, 24, 26, 27, 28, 32, 34, 38, 49, 90, 105).
+- Ga Kim Mã (Chưa hoạt động):
+  + Các tuyến buýt kết nối: 18, 22A, 23, 25, 32, 34, 38, 49, 50, 90.
+- Ga Cát Linh (Tuyến 3, Chưa hoạt động):
+  + Các tuyến buýt kết nối: Kết nối trực tiếp với Ga Cát Linh (Tuyến 2A).
+- Ga Văn Miếu (Chưa hoạt động):
+  + Các tuyến buýt kết nối: 02, 23, 32, 38, 41.
+- Ga Hà Nội (Chưa hoạt động):
+  + Các tuyến buýt kết nối: 01, 03A, 08B, 11, 32, 38, 40, 49, 86.

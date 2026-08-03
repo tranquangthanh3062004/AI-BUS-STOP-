@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "smart-bus-stop-edge"
+version = "0.1.0"
+description = "Edge AI microservices for Smart Bus Stop Kiosk"
+authors = ["AI Research Council <council@transport-ai.local>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.100.0"
+uvicorn = {extras = ["standard"], version = "^0.23.0"}
+llama-cpp-python = "^0.2.11"
+paho-mqtt = "^1.6.1"
+chromadb = "^0.4.10"
+networkx = "^3.1"
+sounddevice = "^0.4.6"
+numpy = "^1.25.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

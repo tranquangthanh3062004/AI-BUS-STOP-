@@ -1,0 +1,16 @@
+=== ỨNG DỤNG DI ĐỘNG VÀ THANH TOÁN ĐIỆN TỬ XE BUÝT HÀ NỘI ===
+
+1. ỨNG DỤNG TÌM BUÝT (TIMBUS.VN)
+- Chức năng: Tìm đường đi bằng xe buýt, tra cứu lộ trình, xem thời gian thực (GPS) xe buýt sắp đến trạm.
+- Đăng ký vé tháng ảo: Người dùng có thể đăng ký thẻ vé tháng trực tuyến trên ứng dụng "Tìm Buýt" hoặc "Thẻ Vé Giao Thông Hà Nội". Thẻ ảo sẽ tích hợp mã QR để quét khi lên xe.
+- Cài đặt: Có sẵn trên App Store (iOS) và Google Play (Android).
+
+2. CÁC HÌNH THỨC THANH TOÁN ĐIỆN TỬ
+- Thẻ IC Card (Thẻ thông minh): Sử dụng trên các tuyến xe buýt điện VinBus và một số tuyến xe buýt nhanh BRT. Thẻ có thể nạp tiền tại các điểm giao dịch.
+- Quét mã QR: Hành khách có thẻ vé tháng ảo có thể mở ứng dụng, lấy mã QR và quét vào máy đọc thẻ trên xe.
+- Thanh toán bằng thẻ ngân hàng (Contactless): Một số tuyến xe buýt điện VinBus (E01-E09) hỗ trợ chạm thẻ ngân hàng (Visa, Mastercard, Napas) trực tiếp trên máy đọc thẻ để mua vé lượt.
+- Thanh toán qua VNeID: Đang được thí điểm tích hợp vé tháng xe buýt và thẻ đi metro vào ứng dụng VNeID (Tài khoản định danh điện tử quốc gia). Hành khách có thể trình VNeID có tích hợp thẻ xe buýt để sử dụng.
+
+3. HƯỚNG DẪN NẠP TIỀN THẺ GIAO THÔNG
+- Nạp tiền mặt: Tại các quầy vé tháng, điểm giao dịch của Transerco hoặc VinBus.
+- Nạp tiền trực tuyến: Qua các ví điện tử (MoMo, ZaloPay, VNPay) hoặc ứng dụng Mobile Banking của các ngân hàng. (Chủ yếu áp dụng cho việc mua vé tháng).
