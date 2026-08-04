@@ -14,7 +14,7 @@ from shared.schemas import RetrievedContext
 from shared.logger import logger
 from shared.config import settings
 
-FALLBACK_MESSAGE = "Tôi không tìm thấy thông tin này trong cơ sở dữ liệu cục bộ hiện có."
+FALLBACK_MESSAGE = "Tôi không tìm thấy thông tin này trong cơ sở dữ liệu cục bộ hiện có Bạn có thể thử lại hoặc cung cấp thông tin chi tiết hơn hoặc tham khảo tại google map hoặc timbus.vn"
 
 
 class LocalLLMEngine:

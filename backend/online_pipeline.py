@@ -141,17 +141,18 @@ class OnlineAIAssistant:
                 
                 for route in scraped_routes:
                     route_nums = route.route_id.split(" -> ")
-                    db_exists = True
-                    for num in route_nums:
-                        num = normalize_route_id(num)
-                        if num not in cache_keys:
-                            db_exists = False
-                            break
+                    db_exists = all(normalize_route_id(num) in cache_keys for num in route_nums)
+                    
+                    route_valid = db_exists and all(
+                        self._deep_cross_check(normalize_route_id(num), intent_res.entities.origin, intent_res.entities.destination)
+                        for num in route_nums
+                    )
                             
-                    if db_exists:
+                    if route_valid:
                         new_valid_ids.append(route.route_name)
                         ids = route.route_id.replace("->", " ").replace("HCM_", "").split()
                         new_valid_ids.extend([normalize_route_id(i) for i in ids if i.strip()])
+                        route.description += " (Đã xác minh qua CSDL nội bộ)"
                     else:
                         route.description += " (Lưu ý: Hệ thống AI có thể có sai sót, bạn vui lòng xem lại qua Google Maps hoặc timbus.vn để có thông tin chính xác nhất)"
                     verified_routes.append(route)
@@ -224,13 +225,38 @@ class OnlineAIAssistant:
             is_offline_mode=False
         )
 
+    def _deep_cross_check(self, route_id: str, origin: str, destination: str) -> bool:
+        """Kiểm tra tuyến có thực sự đi qua cả origin và destination không."""
+        from edge_ai.transit_graph import norm_str
+        
+        route_info = self.offline_assistant.retriever.transit_graph._routes_cache.get(route_id)
+        if not route_info:
+            return False
+        
+        # Lấy toàn bộ lộ trình chiều đi + chiều về
+        all_text = norm_str(
+            f"{route_info.get('outbound_itinerary', '')} "
+            f"{route_info.get('inbound_itinerary', '')} "
+            f"{route_info.get('start_stop', '')} "
+            f"{route_info.get('end_stop', '')}"
+        )
+        
+        origin_aliases = self.offline_assistant.retriever.transit_graph._normalize_location(origin)
+        dest_aliases = self.offline_assistant.retriever.transit_graph._normalize_location(destination)
+        
+        origin_match = any(alias in all_text for alias in origin_aliases)
+        dest_match = any(alias in all_text for alias in dest_aliases)
+        
+        return origin_match and dest_match
+
     def _build_context_string(self, context) -> str:
         """Build a clean context string for LLM consumption."""
         parts = []
         if context.structured_routes:
-            parts.append("TUYẾN XE BUÝT TỐI ƯU NHẤT (Chỉ dựa vào tuyến này để trả lời ngắn gọn):")
-            for r in context.structured_routes[:1]:
-                parts.append(f"- {r.route_name}: {r.description}")
+            parts.append("CÁC TUYẾN XE BUÝT PHÙ HỢP (Ưu tiên phương án đầu tiên):")
+            for i, r in enumerate(context.structured_routes[:3]):
+                verified = "(✓ Đã xác minh)" if "Đã xác minh" in r.description else "(⚠ Chưa xác minh)"
+                parts.append(f"Phương án {i+1} {verified}: {r.route_name} - {r.description}")
         if context.unstructured_chunks:
             parts.append("\nTHÔNG TIN THÊM:")
             for chunk in context.unstructured_chunks[:2]:
