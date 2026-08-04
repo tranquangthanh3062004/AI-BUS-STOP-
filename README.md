@@ -1,6 +1,6 @@
 # AI Smart Bus Stop Assistant
 
-Hệ thống Kiosk AI thông minh tại các trạm xe buýt, hỗ trợ hỏi đáp bằng giọng nói/văn bản. Hệ thống được thiết kế với cơ chế chạy Offline tại Edge Device (Kiosk) và Online (Cloud Backend), với tính năng Auto-Failover khi mất kết nối mạng.
+Hệ thống  AI thông minh tại các trạm xe buýt, hỗ trợ hỏi đáp bằng giọng nói/văn bản. 
 
 ## Yêu cầu hệ thống
 - Python 3.10+

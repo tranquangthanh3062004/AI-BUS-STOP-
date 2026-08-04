@@ -34,6 +34,8 @@ def init_db(conn):
     DROP TABLE IF EXISTS transfers;
     DROP TABLE IF EXISTS routes_fts;
     DROP TABLE IF EXISTS stops_fts;
+    DROP TABLE IF EXISTS faqs_fts;
+    DROP TABLE IF EXISTS aliases;
 
     CREATE TABLE transfers (
         route_1 TEXT,
@@ -102,12 +104,18 @@ def init_db(conn):
         title TEXT,
         content TEXT
     );
+
+    CREATE TABLE aliases (
+        alias TEXT PRIMARY KEY,
+        true_name TEXT
+    );
     """)
     conn.commit()
 
 def extract_fare(fare_str):
     digits = re.findall(r"\d+", fare_str.replace(".", "").replace(",", ""))
-    return int(digits[0]) if digits else 7000
+    fare = int(digits[0]) if digits else 10000
+    return max(fare, 10000)
 
 def clean_id(route_id):
     r_id = str(route_id).upper().replace("TUYẾN", "").replace(" ", "").strip()
@@ -133,6 +141,8 @@ def normalize_stop_name(name):
     n = re.sub(r'\bcơ sở II\b', 'Cơ sở 2', n, flags=re.IGNORECASE)
     n = re.sub(r'\bKĐT\b', 'Khu đô thị', n, flags=re.IGNORECASE)
     n = re.sub(r'\bTHPT\b', 'Trường THPT', n, flags=re.IGNORECASE)
+    n = re.sub(r'\bBX\b', 'Bến xe', n, flags=re.IGNORECASE)
+    n = re.sub(r'\bTTTM\b', 'Trung tâm thương mại', n, flags=re.IGNORECASE)
     n = re.sub(r'\s+', ' ', n).strip()
     return n
 
@@ -215,40 +225,19 @@ def parse_and_seed_data(conn):
             routes_map[r_id] = {
                 "route_id": r_id, "route_name": "", "start_stop": "", "end_stop": "",
                 "operating_hours": "5:00 - 21:00", "frequency": "10 - 15 phút/chuyến",
-                "fare_vnd": 7000, "outbound_itinerary": "", "inbound_itinerary": "",
+                "fare_vnd": 10000, "outbound_itinerary": "", "inbound_itinerary": "",
                 "vehicle_type": "Bus", "special_notes": "", "city": "Hà Nội"
             }
         return routes_map[r_id]
 
-    # --- 1. Parse Excel data (if any) ---
-    excel_files = [f for f in os.listdir(RAW_DIR) if f.endswith('.xlsx')] if os.path.exists(RAW_DIR) else []
-    archive_dir = os.path.join(RAW_DIR, "archive", "raw_data")
-    if os.path.exists(archive_dir):
-        excel_files.extend([os.path.join("archive", "raw_data", f) for f in os.listdir(archive_dir) if f.endswith('.xlsx')])
-    
-    if excel_files:
-        excel_path = os.path.join(RAW_DIR, excel_files[0])
-        try:
-            df = pd.read_excel(excel_path)
-            for _, row in df.iterrows():
-                r_code = str(row.iloc[0]).strip() if pd.notna(row.iloc[0]) else ""
-                r_name = str(row.iloc[1]).strip() if pd.notna(row.iloc[1]) else ""
-                time_str = str(row.iloc[2]).strip() if pd.notna(row.iloc[2]) else "5h00 - 21h00"
-                fare_str = str(row.iloc[3]).strip() if pd.notna(row.iloc[3]) else "7.000 VNĐ"
-                if not r_code or r_code.lower() == "mã số": continue
-
-                r = get_or_create_route(r_code)
-                if not r: continue
-                r["vehicle_type"] = detect_vehicle_type(r["route_id"])
-                if not r["route_name"]:
-                    r["route_name"] = r_name
-                    parts = r_name.split("-") if "-" in r_name else [r_name, ""]
-                    r["start_stop"] = parts[0].strip()
-                    r["end_stop"] = parts[-1].strip() if len(parts) > 1 else ""
-                r["operating_hours"] = time_str
-                r["fare_vnd"] = extract_fare(fare_str)
-        except Exception as e:
-            print(f"Warning parsing Excel: {e}")
+    # --- 1. Load Aliases ---
+    alias_path = os.path.join(HANOI_DIR, "alias_map.json")
+    if os.path.exists(alias_path):
+        with open(alias_path, "r", encoding="utf-8") as f:
+            aliases = json.load(f)
+            for alias, true_name in aliases.items():
+                cursor.execute("INSERT OR REPLACE INTO aliases (alias, true_name) VALUES (?, ?)", (alias, true_name))
+        print(f"Loaded {len(aliases)} aliases.")
 
     # --- 2. Parse danh_sach_tuyen_buyt.txt ---
     fpath = os.path.join(HANOI_DIR, "danh_sach_tuyen_buyt.txt")
@@ -300,7 +289,7 @@ def parse_and_seed_data(conn):
                     m_itin = re.search(r"Lộ trình:\s*([^\n]+)", content)
                     if m_itin: r["outbound_itinerary"] = m_itin.group(1).strip()
                     r["operating_hours"] = "05:00 - 22:00"
-                    r["fare_vnd"] = 9000
+                    r["fare_vnd"] = 10000
 
         blocks = re.split(r"\n(?=\s*(?:-\s*Mã số:|Tuyến))", content, flags=re.IGNORECASE)
         for block in blocks:
@@ -413,6 +402,10 @@ def parse_and_seed_data(conn):
     for r_id, r_data in routes_map.items():
         if r_data["outbound_itinerary"] and not r_data["inbound_itinerary"]:
             r_data["inbound_itinerary"] = reverse_itinerary(r_data["outbound_itinerary"])
+            if r_data["special_notes"]:
+                r_data["special_notes"] += " | Lộ trình chiều về là ước lượng tự động (có thể sai lệch do đường một chiều)."
+            else:
+                r_data["special_notes"] = "Lộ trình chiều về là ước lượng tự động (có thể sai lệch do đường một chiều)."
 
     # --- Build Stops and Insert ---
     all_stops = set()

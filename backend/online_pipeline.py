@@ -28,18 +28,16 @@ SYSTEM_PROMPT_KIOSK = """Bạn là Kiosk thông tin xe buýt thông minh tại t
 KHÔNG xưng là AI hay trợ lý ảo. Nhiệm vụ duy nhất của bạn là TRẢ LỜI ngắn gọn, chính xác bằng Tiếng Việt.
 
 QUY TẮC BẮT BUỘC:
-- Chỉ dùng DỮ LIỆU BÊN DƯỚI để trả lời. Không bịa thêm thông tin.
-- Nếu hỏi lộ trình và có tuyến trong dữ liệu: Trả lời TÊN TUYẾN, LỘ TRÌNH, GIÁ VÉ.
-- Nếu hỏi thông tin chung (giá vé, quy định): Trả lời thẳng vào vấn đề.
-- Nếu khách chào hỏi: Hỏi họ muốn đi đâu.
-- Giọng văn: Thân thiện, súc tích. KHÔNG dùng emoji.
+- CHỈ ƯU TIÊN SỬ DỤNG DỮ LIỆU ĐƯỢC CUNG CẤP DƯỚI ĐÂY (đặc biệt là đề xuất từ Google Maps). Không tự bịa thêm tuyến xe.
+- Nếu có câu cảnh báo trong dữ liệu (vd: "Hệ thống AI có thể có sai sót..."), BẮT BUỘC phải đưa cảnh báo đó vào câu trả lời để nhắc nhở hành khách.
+- Giọng văn: Thân thiện, súc tích, không dẫn nhập dài dòng. KHÔNG dùng emoji.
 
-DỮ LIỆU CỤC BỘ:
+DỮ LIỆU ĐÃ TỔNG HỢP (Google Maps + Local DB):
 {context}
 
 CÂU HỎI HÀNH KHÁCH: {query}
 
-TRẢ LỜI (Tiếng Việt, ngắn gọn, không dẫn nhập dài dòng):"""
+TRẢ LỜI (Tiếng Việt, ngắn gọn):"""
 
 
 class OnlineAIAssistant:
@@ -155,7 +153,7 @@ class OnlineAIAssistant:
                         ids = route.route_id.replace("->", " ").replace("HCM_", "").split()
                         new_valid_ids.extend([normalize_route_id(i) for i in ids if i.strip()])
                     else:
-                        route.description += " (Lưu ý hệ thống: Tuyến xe này có thể đã thay đổi lộ trình hoặc tạm ngừng)"
+                        route.description += " (Lưu ý: Hệ thống AI có thể có sai sót, bạn vui lòng xem lại qua Google Maps hoặc timbus.vn để có thông tin chính xác nhất)"
                     verified_routes.append(route)
                 
                 context.valid_route_ids = list(set(context.valid_route_ids + new_valid_ids))
@@ -177,20 +175,31 @@ class OnlineAIAssistant:
         # 4. Build context string for LLM
         context_str = self._build_context_string(context)
 
-        # 5. Hybrid approach: Use Ollama -> Deterministic (Gemini disabled per user request)
-        logger.info("Using Local Ollama with Google Maps + SQLite Hybrid context...")
+        # 5. Hybrid approach: Use Gemini -> Ollama -> Deterministic Summarizer
+        logger.info("Using Gemini/Ollama with Google Maps + SQLite Hybrid context...")
         answer_text = None
         status = "FALLBACK"
         
-        ollama_answer = self._call_ollama_agent_api(norm_query, context_str)
-        if ollama_answer:
-            is_valid, validated_ollama = self.validator.validate(ollama_answer, context)
+        gemini_answer = self._call_gemini_api(norm_query, context_str)
+        if gemini_answer:
+            is_valid, validated_gemini = self.validator.validate(gemini_answer, context)
             if is_valid:
-                answer_text = validated_ollama
-                sources.append("local_ollama_agent_api")
+                answer_text = validated_gemini
+                sources.append("gemini_flash_api")
                 status = "SUCCESS"
             else:
-                logger.warning("Ollama answer failed validation (Hallucination detected).")
+                logger.warning("Gemini answer failed validation. Falling back to Ollama.")
+
+        if not answer_text:
+            ollama_answer = self._call_ollama_agent_api(norm_query, context_str)
+            if ollama_answer:
+                is_valid, validated_ollama = self.validator.validate(ollama_answer, context)
+                if is_valid:
+                    answer_text = validated_ollama
+                    sources.append("local_ollama_agent_api")
+                    status = "SUCCESS"
+                else:
+                    logger.warning("Ollama answer failed validation (Hallucination detected).")
 
         if not answer_text:
             # 6. Final fallback: deterministic summarizer (always works)
@@ -219,8 +228,8 @@ class OnlineAIAssistant:
         """Build a clean context string for LLM consumption."""
         parts = []
         if context.structured_routes:
-            parts.append("CÁC TUYẾN XE BUÝT PHÙ HỢP:")
-            for r in context.structured_routes[:3]:
+            parts.append("TUYẾN XE BUÝT TỐI ƯU NHẤT (Chỉ dựa vào tuyến này để trả lời ngắn gọn):")
+            for r in context.structured_routes[:1]:
                 parts.append(f"- {r.route_name}: {r.description}")
         if context.unstructured_chunks:
             parts.append("\nTHÔNG TIN THÊM:")

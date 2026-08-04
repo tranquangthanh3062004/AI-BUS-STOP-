@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import sqlite3
 from dotenv import load_dotenv
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -17,21 +18,30 @@ def build_vector_index():
         logger.error("Vector RAG is disabled or GEMINI_API_KEY is not set.")
         return
         
-    faq_path = settings.faq_path
-    if not os.path.exists(faq_path):
-        logger.error(f"FAQ file not found: {faq_path}")
+    db_path = settings.db_path
+    if not os.path.exists(db_path):
+        logger.error(f"SQLite DB not found: {db_path}")
         return
         
-    with open(faq_path, "r", encoding="utf-8") as f:
-        faqs = json.load(f)
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT id, category, title, content FROM faqs")
+        rows = cursor.fetchall()
+    except Exception as e:
+        logger.error(f"Database error: {e}")
+        conn.close()
+        return
+    conn.close()
         
     documents = []
-    for i, faq in enumerate(faqs):
+    for row in rows:
+        faq_id, category, title, content = row
         doc = {
-            "id": f"faq_{i}",
-            "title": faq.get("question", ""),
-            "content": f"Q: {faq.get('question', '')}\nA: {faq.get('answer', '')}",
-            "category": faq.get("category", "General")
+            "id": f"faq_{faq_id}",
+            "title": title or "",
+            "content": f"Q: {title}\nA: {content}",
+            "category": category or "General"
         }
         documents.append(doc)
         

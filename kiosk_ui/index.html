@@ -1161,9 +1161,6 @@
                 chatHistory.scrollTop = chatHistory.scrollHeight;
 
                 let ttsText = data.reply;
-                if (data.recommendations && data.recommendations.length > 0) {
-                    ttsText = `Chuyến xe buýt tối ưu nhất là: ${data.recommendations[0].route_name.replace('Google Maps: ', '')}`;
-                }
                 speakVietnamese(ttsText);
 
             } catch (err) {
