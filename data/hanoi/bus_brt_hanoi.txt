@@ -43,7 +43,7 @@ TUYẾN 32 (Bến xe Mỹ Đình – ĐH Quốc gia HN):
 TUYẾN 34 (Trần Khánh Dư – Nhổn):
 - Lộ trình: Trần Khánh Dư → Hoàn Kiếm → Kim Mã → Cầu Giấy → Nhổn
 - Giờ: 05:30 – 21:30 | Tần suất: 15–20 phút | Giá: 9.000 đồng
-- Kết nối Metro tuyến 3 tại ga Nhổn và Cầu Giấy
+
 
 TUYẾN 38 (Bến xe Giáp Bát – Nội Bài):
 - Lộ trình: Bến xe Giáp Bát → Giải Phóng → Hoàng Quốc Việt → QL5 → Sân bay Nội Bài
@@ -71,7 +71,7 @@ XE BUÝT NHANH BRT
 - Giờ: 05:00 – 22:00 | Tần suất: 5–10 phút (cao điểm), 15 phút (thường)
 - Giá: 9.000 đồng (như xe buýt thường)
 - Đặc điểm: Làn đường riêng, nhanh hơn buýt thường 30–40%
-- Kết nối: Ga Yên Nghĩa (Metro 2A), Kim Mã (Metro 3 S9 tương lai)
+
 
 - Các tuyến đang trong giai đoạn quy hoạch và chuẩn bị đầu tư
 
@@ -80,13 +80,9 @@ XE BUÝT NHANH BRT
 TỪ SÂN BAY NỘI BÀI → TRUNG TÂM HÀ NỘI (Hoàn Kiếm):
 Cách 1 – Buýt 7: Nội Bài → Bến xe Mỹ Đình → Buýt 45/49 → Hoàn Kiếm | ~18.000đ | 70–90 phút
 Cách 2 – Buýt 86: Nội Bài → Bến xe Gia Lâm → Buýt 01 → Hoàn Kiếm | ~18.000đ | 80–100 phút
-Cách 1 – Metro 2A: Ga Cát Linh → Ga Yên Nghĩa (~23 phút, 15.000đ)
-TỪ NHỔN → TRUNG TÂM HÀ NỘI:
-Metro 3 (trên cao): Ga Nhổn → Ga Cầu Giấy (~15 phút) + chờ đoạn ngầm 2027
+
 Q: Đi từ sân bay Nội Bài vào Hà Nội bằng gì?
-Q: Metro Cát Linh – Hà Đông chạy mấy giờ?
-Q: Metro tuyến 3 Hà Nội (Nhổn – Ga Hà Nội) hiện đang chạy đến đâu?
-A: Đang chạy đoạn trên cao từ ga Nhổn đến ga Cầu Giấy (8 ga, từ 08/08/2024). Đoạn ngầm Cầu Giấy – Ga Hà Nội đang xây, dự kiến 2027.
-A: Có. Xe buýt: Mức giảm giá vé theo quy định của UBND địa phương tại thời điểm áp dụng hoặc vé tháng ưu đãi. Metro TP.HCM: vé tháng SV 150.000đ (thường 300.000đ). Metro Hà Nội: vé tháng SV 100.000đ (thường 200.000đ). Buýt điện (153–169): 3.000đ/lượt cho SV.
+
+A: Có. Xe buýt: Mức giảm giá vé theo quy định của UBND địa phương tại thời điểm áp dụng hoặc vé tháng ưu đãi. Buýt điện (153–169): 3.000đ/lượt cho SV.
 A: TP.HCM: Go!Bus (chính thức), BusMap. Hà Nội: Tìm Buýt (timbus.vn). Cả 2 thành phố: Google Maps.
 Q: Xe BRT Hà Nội chạy tuyến nào?

@@ -10,10 +10,16 @@ from typing import Optional
 from shared.schemas import QueryRequest, OfflineResponse
 from edge_ai.intent_classifier import IntentClassifier
 from rag.local_retriever import LocalRetriever
-from local_llm.llm_engine import LocalLLMEngine, FALLBACK_MESSAGE
+from local_llm.llm_engine import LocalLLMEngine, FALLBACK_MESSAGES
 from edge_ai.validator import AnswerValidator
 from edge_ai.session_manager import SessionManager
 from edge_ai.session_resolver import resolve_entities_from_session
+
+
+class _DummyScraper:
+    """Fallback khi Playwright không khả dụng — trả về list rỗng."""
+    def scrape_route(self, origin: str, destination: str):
+        return []
 
 
 class OfflineAIAssistant:
@@ -21,13 +27,20 @@ class OfflineAIAssistant:
         self.intent_classifier = IntentClassifier()
         self.retriever = LocalRetriever()
         self.llm_engine = LocalLLMEngine(model_path=model_path)
-        from edge_ai.validator import AnswerValidator
-        from edge_ai.session_manager import SessionManager
-        from backend.scraper_agent import GoogleMapsScraperAgent
-
         self.validator = AnswerValidator()
         self.session_manager = SessionManager()
-        self.scraper = GoogleMapsScraperAgent()
+        self._scraper = None  # Lazy-loaded: chỉ khởi tạo khi cần
+
+    @property
+    def scraper(self):
+        """Lazy-load GoogleMapsScraperAgent để tránh crash nếu Playwright chưa cài."""
+        if self._scraper is None:
+            try:
+                from backend.scraper_agent import GoogleMapsScraperAgent
+                self._scraper = GoogleMapsScraperAgent()
+            except Exception:
+                self._scraper = _DummyScraper()
+        return self._scraper
 
     def process_query(self, request: QueryRequest) -> OfflineResponse:
         start_time = time.perf_counter()
@@ -39,7 +52,7 @@ class OfflineAIAssistant:
                 raw_query="",
                 normalized_query="",
                 intent="UNKNOWN",
-                answer_text=FALLBACK_MESSAGE,
+                answer_text=FALLBACK_MESSAGES[1],
                 recommendations=[],
                 execution_time_ms=0.0,
                 sources_used=["offline_fallback"]
@@ -125,7 +138,7 @@ class OfflineAIAssistant:
         is_valid, final_answer = self.validator.validate(raw_answer, context)
 
         elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
-        status = "SUCCESS" if (is_valid and final_answer != FALLBACK_MESSAGE) else "FALLBACK"
+        status = "SUCCESS" if (is_valid and final_answer not in FALLBACK_MESSAGES) else "FALLBACK"
 
         if context.unstructured_chunks:
             sources.append("local_faq_store_json")

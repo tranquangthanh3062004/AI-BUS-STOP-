@@ -49,7 +49,7 @@ class SystemManager:
         self.offline_assistant = OfflineAIAssistant()
         self.online_assistant = OnlineAIAssistant(offline_assistant=self.offline_assistant)
         self.network_monitor = NetworkMonitor()
-        self.network_mode = "ONLINE"  # Changed back to ONLINE mode as primary
+        self.network_mode = "OFFLINE"  # Default to LOCAL AI (Qwen via Ollama) — no cloud API needed
         self.manual_override = False
         self.station_id = settings.station_id
         self.station_name = settings.station_name

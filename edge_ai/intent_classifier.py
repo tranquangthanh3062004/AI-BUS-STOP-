@@ -126,8 +126,7 @@ class IntentClassifier:
             intent_label = "TOURIST_QUERY"
         elif any(w in normalized for w in ["bến xe", "điểm trung chuyển"]) and any(w in normalized for w in ["ở đâu", "chỗ nào", "nằm ở", "địa chỉ"]):
             intent_label = "STATION_QUERY"
-        elif any(w in normalized for w in ["metro", "tàu điện", "cát linh", "nhổn", "ga trên cao", "suối tiên"]):
-            intent_label = "METRO_QUERY"
+
         elif any(w in normalized for w in ["giá vé", "bao nhiêu tiền", "vé tháng", "vé lượt", "miễn phí", "ưu đãi", "sinh viên"]):
             intent_label = "FARE_QUERY"
         elif any(w in normalized for w in ["buổi tối", "mấy giờ", "giờ chạy", "hoạt động", "tần suất", "chuyến cuối", "tết", "cuối tuần", "ngày lễ"]):

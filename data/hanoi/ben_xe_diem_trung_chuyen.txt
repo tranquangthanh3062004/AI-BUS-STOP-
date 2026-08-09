@@ -14,7 +14,7 @@
 - Bến xe Yên Nghĩa:
   + Địa chỉ: Quốc lộ 6, Yên Nghĩa, Hà Đông, Hà Nội.
   + Các tuyến buýt kết nối: 01, 02, 21A, 27, 33, 62, 72, 77, 89, 91, 102, 105, 114, 157, BRT01.
-  + Kết nối ga Metro: Ga Yên Nghĩa (Tuyến 2A Cát Linh - Hà Đông).
+
   + Dịch vụ: Phục vụ khách đi các tỉnh Tây Bắc, Hòa Bình, Sơn La, Điện Biên.
 
 - Bến xe Gia Lâm:
@@ -36,13 +36,13 @@
 - Điểm trung chuyển Cầu Giấy:
   + Vị trí: Đường Cầu Giấy (Gần Đại học Giao thông Vận tải và Vườn thú Hà Nội).
   + Các tuyến buýt kết nối: 07, 09, 16, 20A, 24, 26, 27, 28, 32, 34, 38, 49, 90, 105.
-  + Kết nối ga Metro: Ga Cầu Giấy (Tuyến 3 Nhổn - Ga Hà Nội).
+
   + Dịch vụ: Điểm bán vé tháng.
 
 - Điểm trung chuyển Nhổn:
   + Vị trí: Đường 32, Minh Khai, Bắc Từ Liêm.
   + Các tuyến buýt kết nối: 20A, 20B, 29, 32, 49, 57, 117.
-  + Kết nối ga Metro: Ga Nhổn (Tuyến 3).
+
 
 - Điểm trung chuyển Hoàng Quốc Việt (Bãi đỗ xe Nam Thăng Long):
   + Vị trí: Đường Phạm Văn Đồng, Bắc Từ Liêm.

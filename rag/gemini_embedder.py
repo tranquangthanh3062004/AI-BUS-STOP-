@@ -1,5 +1,4 @@
 import os
-import google.generativeai as genai
 from typing import List
 from shared.config import settings
 from shared.logger import logger
@@ -9,16 +8,8 @@ class GeminiEmbedder:
         self.api_key = settings.gemini_api_key or os.environ.get("GEMINI_API_KEY")
         self.enabled = False
         
-        if self.api_key and settings.vector_rag_enabled:
-            try:
-                genai.configure(api_key=self.api_key)
-                self.model = 'models/text-embedding-004'
-                self.enabled = True
-                logger.info("Gemini Embedder initialized successfully.")
-            except Exception as e:
-                logger.error(f"Failed to initialize Gemini Embedder: {e}")
-        else:
-            logger.warning("Gemini API key not found or vector_rag_enabled is False. Embedding disabled.")
+        # Disabled Gemini Embedder due to 100% local requirement
+        logger.warning("Gemini Embedder is permanently disabled (running in  Local AI mode).")
 
     def embed_query(self, text: str) -> List[float]:
         if not self.enabled:

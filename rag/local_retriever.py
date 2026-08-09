@@ -1,7 +1,7 @@
 """
 rag/local_retriever.py
 Hybrid Retriever combining Local Transit Graph (structured route recommendations)
-and Local FAQ & GTCC Knowledge Store (unstructured rules/fares/metro info/VNeID).
+and Local FAQ & GTCC Knowledge Store (unstructured rules/fares/VNeID).
 """
 
 import os
@@ -42,7 +42,6 @@ class LocalRetriever:
     def _preferred_faq_categories(self, intent_label: str) -> List[str]:
         return {
             "FARE_QUERY": ["Fare"],
-            "METRO_QUERY": ["Metro"],
             "RULE_QUERY": ["Rules", "General Rules"],
             "APP_QUERY": ["App Guide"],
             "TOURIST_QUERY": ["Tourist"],
@@ -73,9 +72,13 @@ class LocalRetriever:
                 if category_rows:
                     return tuple(category_rows)
 
-            fts_query = " OR ".join([f'"{q}"' for q in query_text.split() if len(q) > 2])
+            import re
+            # Lọc bỏ tất cả ký tự đặc biệt để chống SQL Injection & Syntax Error trong FTS5
+            safe_query = re.sub(r'[^\w\s]', '', query_text)
+            fts_query = " OR ".join([f'"{q}"' for q in safe_query.split() if len(q) > 2])
             if not fts_query:
-                fts_query = f'"{query_text}"'
+                fts_query = f'"{safe_query}"'
+
 
             cursor.execute(
                 "SELECT category, content FROM faqs_fts WHERE faqs_fts MATCH ? LIMIT 20",
@@ -120,8 +123,6 @@ class LocalRetriever:
             query_text = raw_query if raw_query else intent_label
         if intent_label == "FARE_QUERY":
             query_text = "giá vé xe buýt vé tháng vé lượt bảng giá"
-        elif intent_label == "METRO_QUERY":
-            query_text = "tuyến metro cát linh hà đông bến thành suối tiên nhổn ga đường sắt đô thị"
         elif intent_label == "RULE_QUERY":
             query_text = "quy định hành lý trẻ em người cao tuổi miễn phí vé pháp luật"
         elif intent_label == "APP_QUERY":
@@ -157,7 +158,7 @@ class LocalRetriever:
                 top_r = structured_routes[0]
                 unstructured_chunks.append(f"{top_r.route_name} chạy trong khung giờ: {top_r.operating_hours}.")
             else:
-                unstructured_chunks.append("Thời gian hoạt động chung của hệ thống xe buýt Việt Nam thường từ 05:00 - 21:00 (hoặc đến 22:30 đối với một số tuyến chính). Tuyến Metro Bến Thành - Suối Tiên và Cát Linh - Hà Đông chạy từ 05:30 - 22:00 hàng ngày.")
+                unstructured_chunks.append("Thời gian hoạt động chung của hệ thống xe buýt Việt Nam thường từ 05:00 - 21:00 (hoặc đến 22:30 đối với một số tuyến chính).")
 
         # Extract valid route IDs for validation
         for r in structured_routes:

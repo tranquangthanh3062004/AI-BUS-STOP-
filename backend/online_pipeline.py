@@ -20,7 +20,7 @@ from shared.logger import logger
 from edge_ai.intent_classifier import IntentClassifier
 from edge_ai.offline_pipeline import OfflineAIAssistant
 from edge_ai.validator import AnswerValidator
-from local_llm.llm_engine import FALLBACK_MESSAGE
+from local_llm.llm_engine import FALLBACK_MESSAGES
 from backend.scraper_agent import GoogleMapsScraperAgent
 
 
@@ -28,11 +28,12 @@ SYSTEM_PROMPT_KIOSK = """Bạn là Kiosk thông tin xe buýt thông minh tại t
 KHÔNG xưng là AI hay trợ lý ảo. Nhiệm vụ duy nhất của bạn là TRẢ LỜI ngắn gọn, chính xác bằng Tiếng Việt.
 
 QUY TẮC BẮT BUỘC:
-- CHỈ ƯU TIÊN SỬ DỤNG DỮ LIỆU ĐƯỢC CUNG CẤP DƯỚI ĐÂY (đặc biệt là đề xuất từ Google Maps). Không tự bịa thêm tuyến xe.
-- Nếu có câu cảnh báo trong dữ liệu (vd: "Hệ thống AI có thể có sai sót..."), BẮT BUỘC phải đưa cảnh báo đó vào câu trả lời để nhắc nhở hành khách.
+- CHỈ ƯU TIÊN SỬ DỤNG DỮ LIỆU ĐƯỢC CUNG CẤP DƯỚI ĐÂY (đặc biệt là dữ liệu tuyến đường được đề xuất). Không tự bịa thêm tuyến xe.
+- Nếu có câu cảnh báo trong dữ liệu (vd: "Mẹo: Mở ứng dụng..."), BẮT BUỘC phải đưa cảnh báo đó vào câu trả lời để nhắc nhở hành khách.
 - Giọng văn: Thân thiện, súc tích, không dẫn nhập dài dòng. KHÔNG dùng emoji.
+- TUYỆT ĐỐI KHÔNG sử dụng ký tự lạ, chữ tượng hình, hoặc Tiếng Trung Quốc trong câu trả lời. Chỉ dùng Tiếng Việt chuẩn.
 
-DỮ LIỆU ĐÃ TỔNG HỢP (Google Maps + Local DB):
+DỮ LIỆU ĐÃ TỔNG HỢP (Hệ thống tìm kiếm tuyến đường):
 {context}
 
 CÂU HỎI HÀNH KHÁCH: {query}
@@ -154,7 +155,7 @@ class OnlineAIAssistant:
                         new_valid_ids.extend([normalize_route_id(i) for i in ids if i.strip()])
                         route.description += " (Đã xác minh qua CSDL nội bộ)"
                     else:
-                        route.description += " (Lưu ý: Hệ thống AI có thể có sai sót, bạn vui lòng xem lại qua Google Maps hoặc timbus.vn để có thông tin chính xác nhất)"
+                        route.description += " (Bạn có thể tham khảo google map,timbus.vn hoặc tham khảo các tuyến)"
                     verified_routes.append(route)
                 
                 context.valid_route_ids = list(set(context.valid_route_ids + new_valid_ids))
@@ -176,31 +177,20 @@ class OnlineAIAssistant:
         # 4. Build context string for LLM
         context_str = self._build_context_string(context)
 
-        # 5. Hybrid approach: Use Gemini -> Ollama -> Deterministic Summarizer
-        logger.info("Using Gemini/Ollama with Google Maps + SQLite Hybrid context...")
+        # 5. Native approach: Use Local Ollama API -> Deterministic Summarizer
+        logger.info("Using Local Ollama with Google Maps + SQLite Hybrid context...")
         answer_text = None
         status = "FALLBACK"
         
-        gemini_answer = self._call_gemini_api(norm_query, context_str)
-        if gemini_answer:
-            is_valid, validated_gemini = self.validator.validate(gemini_answer, context)
+        ollama_answer = self._call_ollama_agent_api(norm_query, context_str)
+        if ollama_answer:
+            is_valid, validated_ollama = self.validator.validate(ollama_answer, context)
             if is_valid:
-                answer_text = validated_gemini
-                sources.append("gemini_flash_api")
+                answer_text = validated_ollama
+                sources.append("local_ollama_agent_api")
                 status = "SUCCESS"
             else:
-                logger.warning("Gemini answer failed validation. Falling back to Ollama.")
-
-        if not answer_text:
-            ollama_answer = self._call_ollama_agent_api(norm_query, context_str)
-            if ollama_answer:
-                is_valid, validated_ollama = self.validator.validate(ollama_answer, context)
-                if is_valid:
-                    answer_text = validated_ollama
-                    sources.append("local_ollama_agent_api")
-                    status = "SUCCESS"
-                else:
-                    logger.warning("Ollama answer failed validation (Hallucination detected).")
+                logger.warning("Ollama answer failed validation (Hallucination detected).")
 
         if not answer_text:
             # 6. Final fallback: deterministic summarizer (always works)
@@ -208,7 +198,7 @@ class OnlineAIAssistant:
             local_answer = self.offline_assistant.llm_engine.generate_answer(norm_query, context)
             _, answer_text = self.validator.validate(local_answer, context)
             sources.append("local_deterministic_summarizer")
-            status = "SUCCESS" if answer_text != FALLBACK_MESSAGE else "FALLBACK"
+            status = "SUCCESS" if answer_text not in FALLBACK_MESSAGES else "FALLBACK"
 
         elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
         logger.info(f"Online pipeline finished in {elapsed_ms}ms | sources: {sources}")
@@ -254,7 +244,7 @@ class OnlineAIAssistant:
         parts = []
         if context.structured_routes:
             parts.append("CÁC TUYẾN XE BUÝT PHÙ HỢP (Ưu tiên phương án đầu tiên):")
-            for i, r in enumerate(context.structured_routes[:3]):
+            for i, r in enumerate(context.structured_routes[:1]):
                 verified = "(✓ Đã xác minh)" if "Đã xác minh" in r.description else "(⚠ Chưa xác minh)"
                 parts.append(f"Phương án {i+1} {verified}: {r.route_name} - {r.description}")
         if context.unstructured_chunks:
@@ -263,46 +253,7 @@ class OnlineAIAssistant:
                 parts.append(f"  {chunk[:300]}")
         return "\n".join(parts) if parts else "Không có dữ liệu tuyến xe phù hợp trong cơ sở dữ liệu cục bộ."
 
-    def _call_gemini_api(self, query: str, context_str: str) -> Optional[str]:
-        """Call Gemini Flash 2.0 API using REST (no SDK needed)."""
-        if not self.gemini_api_key:
-            return None
 
-        prompt = SYSTEM_PROMPT_KIOSK.format(context=context_str, query=query)
-
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={self.gemini_api_key}"
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {
-                "temperature": 0.15,
-                "maxOutputTokens": 512,
-                "candidateCount": 1
-            }
-        }
-
-        try:
-            req_data = json.dumps(payload).encode("utf-8")
-            req = urllib.request.Request(
-                url,
-                data=req_data,
-                headers={"Content-Type": "application/json"},
-                method="POST"
-            )
-            with urllib.request.urlopen(req, timeout=12) as res:
-                if res.status == 200:
-                    data = json.loads(res.read().decode("utf-8"))
-                    candidates = data.get("candidates", [])
-                    if candidates:
-                        text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
-                        if text:
-                            logger.info(f"Gemini Flash responded successfully ({len(text)} chars)")
-                            return text
-        except urllib.error.HTTPError as e:
-            body = e.read().decode("utf-8", errors="ignore")
-            logger.warning(f"Gemini API HTTPError {e.code}: {body[:200]}")
-        except Exception as e:
-            logger.warning(f"Gemini API error: {e}")
-        return None
 
     def _call_ollama_agent_api(self, query: str, context_str: str) -> Optional[str]:
         """Call local Ollama as fallback LLM."""

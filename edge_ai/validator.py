@@ -10,8 +10,9 @@ import unicodedata
 from typing import List, Tuple
 from shared.schemas import RetrievedContext
 from shared.logger import logger
-from local_llm.llm_engine import FALLBACK_MESSAGE
+from local_llm.llm_engine import FALLBACK_MESSAGES
 
+HARD_FAIL_MSG = "Hệ thống bị trục trặc bạn có thể tra cứu thông tin trên google map hoặc timbus.vn"
 
 def norm_str(text: str) -> str:
     if not text:
@@ -36,18 +37,25 @@ class AnswerValidator:
         intent_label = context.intent.intent_label
         valid_route_ids = context.valid_route_ids
 
-        if not answer_text or answer_text.strip() == FALLBACK_MESSAGE:
-            return True, FALLBACK_MESSAGE
+        if not answer_text or answer_text.strip() in FALLBACK_MESSAGES:
+            return True, answer_text.strip() if answer_text else FALLBACK_MESSAGES[1]
             
+        # Kiểm tra ký tự Tiếng Trung / Ký tự lạ
+        if re.search(r'[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff\u31f0-\u31ff]', answer_text):
+            logger.warning("Anti-Hallucination Triggered! LLM generated Chinese/Japanese/Korean characters.")
+            return False, HARD_FAIL_MSG
+
         if len(answer_text) > 500:
             logger.warning(f"Anti-Hallucination Triggered! Output too long ({len(answer_text)} chars). Falling back to avoid runaway generation.")
-            return False, FALLBACK_MESSAGE
+            return False, HARD_FAIL_MSG
 
         ans_compact = answer_text.replace(" ", "").upper()
 
         if intent_label == "ROUTE_QUERY":
             # 1. Clean out time, distance, and money contexts to avoid false positives on numbers
-            clean_text = re.sub(r'\b\d+\s*(?:phút|p|giờ|h|tiếng|km|m|mét|đ|vnd|đồng|k|nghìn|ngàn)\b', '', answer_text, flags=re.IGNORECASE)
+            # Clean ranges like 10-15 phút or formatted numbers like 10.000 đ
+            clean_text = re.sub(r'\b\d+(?:[.,]\d+)*\s*-\s*\d+(?:[.,]\d+)*\s*(?:phút|p|giờ|h|tiếng|km|m|mét|đ|vnd|đồng|k|nghìn|ngàn)\b', '', answer_text, flags=re.IGNORECASE)
+            clean_text = re.sub(r'\b\d+(?:[.,]\d+)*\s*(?:phút|p|giờ|h|tiếng|km|m|mét|đ|vnd|đồng|k|nghìn|ngàn)\b', '', clean_text, flags=re.IGNORECASE)
             # Remove typical counting words
             clean_text = re.sub(r'\b(?:cách|bước|phương án|tuyến đường thứ)\s*\d+\b', '', clean_text, flags=re.IGNORECASE)
 
@@ -71,7 +79,7 @@ class AnswerValidator:
             if not valid_route_ids:
                 if explicit_routes: # Only trigger on explicit if no valid routes
                     logger.warning(f"Anti-Hallucination Triggered! LLM generated routes {explicit_routes} but NO valid routes in context. Output: {answer_text[:100]}")
-                    return False, FALLBACK_MESSAGE
+                    return False, HARD_FAIL_MSG
                 return True, answer_text
 
             valid_clean_ids = [normalize_route_id(v) for v in valid_route_ids]
@@ -81,7 +89,7 @@ class AnswerValidator:
                     if m_clean.isdigit() and int(m_clean) < 10 and m_clean not in explicit_norm:
                         continue # Allow 1-9 to pass if they aren't explicitly prefixed
                     logger.warning(f"Anti-Hallucination Triggered! LLM generated fake route '{m_clean}' not in context ({valid_clean_ids}). Output: {answer_text[:100]}")
-                    return False, FALLBACK_MESSAGE
+                    return False, HARD_FAIL_MSG
 
             is_valid = False
             for v_id in valid_clean_ids:
@@ -91,7 +99,7 @@ class AnswerValidator:
 
             if not is_valid:
                 logger.warning(f"Anti-Hallucination Triggered! LLM output missing required valid route ({valid_clean_ids}). Output: {answer_text[:100]}")
-                return False, FALLBACK_MESSAGE
+                return False, HARD_FAIL_MSG
                 
         elif intent_label == "FARE_QUERY":
             # Validate generated prices against standard Hanoi bus fares
@@ -104,7 +112,7 @@ class AnswerValidator:
                 p_clean = p.replace(".", "").replace(",", "")
                 if p_clean.isdigit() and int(p_clean) > 2000 and p_clean not in valid_prices:
                     logger.warning(f"Anti-Hallucination Triggered! LLM generated invalid fare price: {p}. Output: {answer_text[:100]}")
-                    return False, FALLBACK_MESSAGE
+                    return False, FALLBACK_MESSAGES[1]
                     
         return True, answer_text
 

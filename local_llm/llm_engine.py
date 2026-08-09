@@ -14,8 +14,9 @@ from shared.schemas import RetrievedContext
 from shared.logger import logger
 from shared.config import settings
 
-FALLBACK_MESSAGE = "Tôi không tìm thấy thông tin này trong cơ sở dữ liệu cục bộ hiện có Bạn có thể thử lại hoặc cung cấp thông tin chi tiết hơn hoặc tham khảo tại google map hoặc timbus.vn"
-
+ROUTE_FALLBACK_MESSAGE = "Tôi chưa tìm thấy lộ trình phù hợp. Bạn có thể tham khảo google map,timbus.vn hoặc tham khảo các tuyến."
+GENERAL_FALLBACK_MESSAGE = "Xin lỗi, tôi chưa có thông tin về vấn đề này."
+FALLBACK_MESSAGES = [ROUTE_FALLBACK_MESSAGE, GENERAL_FALLBACK_MESSAGE]
 
 class LocalLLMEngine:
     def __init__(self, model_path: Optional[str] = None, ollama_url: str = "http://localhost:11434"):
@@ -72,20 +73,20 @@ class LocalLLMEngine:
         # come from SQLite, not from a generative model.
         if intent_label == "ROUTE_QUERY":
             if not context.structured_routes:
-                return FALLBACK_MESSAGE
+                return ROUTE_FALLBACK_MESSAGE
             return self._format_with_local_summarizer(raw_query, context)
 
         # FAQ intents with clear templates -> no LLM needed
-        structured_intents = {"FARE_QUERY", "SCHEDULE_QUERY", "METRO_QUERY", "RULE_QUERY"}
+        structured_intents = {"FARE_QUERY", "SCHEDULE_QUERY", "RULE_QUERY"}
         if intent_label in structured_intents and context.unstructured_chunks:
             template_answer = self._format_with_local_summarizer(raw_query, context)
-            if template_answer and template_answer != FALLBACK_MESSAGE:
+            if template_answer and template_answer not in FALLBACK_MESSAGES:
                 return template_answer
 
         # 1. Primary: Run inference via Local Ollama API (Qwen2.5:3B)
         if self.ollama_active and self.active_ollama_model:
             ollama_ans = self._generate_with_ollama(raw_query, context)
-            if ollama_ans and ollama_ans != FALLBACK_MESSAGE:
+            if ollama_ans and ollama_ans not in FALLBACK_MESSAGES:
                 return ollama_ans
 
         # 2. Secondary: Run inference via llama.cpp GGUF binding
@@ -107,7 +108,7 @@ class LocalLLMEngine:
             "[SYSTEM] Bạn là máy đọc văn bản thông minh của Trạm xe buýt.\n"
             "NHIỆM VỤ DUY NHẤT: Tóm tắt thông tin bên dưới thành 2-3 câu tiếng Việt ngắn gọn.\n"
             "TUYỆT ĐỐI không đưa ra thông tin ngoài dữ liệu bên dưới.\n"
-            "Nếu không có thông tin: trả lời '{FALLBACK_MESSAGE}'\n\n"
+            "Nếu không có thông tin: trả lời '{fallback_msg}'\n\n"
             "DỮ LIỆU:\n{context}\n\n"
             "CÂU HỎI: {query}\n\n"
             "TRẢ LỜI (ngắn gọn, tiếng Việt):"
@@ -122,7 +123,8 @@ class LocalLLMEngine:
             formatted_context += f"- {c[:350]}\n"
 
         template = self._get_prompt_template()
-        system_prompt = template.format(context=formatted_context, query=raw_query)
+        fallback_msg = ROUTE_FALLBACK_MESSAGE if context.intent.intent_label == "ROUTE_QUERY" else GENERAL_FALLBACK_MESSAGE
+        system_prompt = template.format(context=formatted_context, query=raw_query, fallback_msg=fallback_msg)
 
         payload = {
             "model": self.active_ollama_model,
@@ -160,11 +162,12 @@ class LocalLLMEngine:
         for c in context.unstructured_chunks:
             formatted_context += f"- {c[:300]}\n"
 
+        fallback_msg = ROUTE_FALLBACK_MESSAGE if context.intent.intent_label == "ROUTE_QUERY" else GENERAL_FALLBACK_MESSAGE
         system_prompt = (
             "[SYSTEM] Bạn là máy đọc văn bản thông minh của Trạm xe buýt.\n"
             "NHIỆM VỤ DUY NHẤT: Tóm tắt thông tin bên dưới thành 2-3 câu tiếng Việt ngắn gọn.\n"
             "TUYỆT ĐỐI không đưa ra thông tin ngoài dữ liệu bên dưới.\n"
-            "Nếu không có thông tin: trả lời '{FALLBACK_MESSAGE}'\n\n"
+            f"Nếu không có thông tin: trả lời '{fallback_msg}'\n\n"
             f"DỮ LIỆU:\n{formatted_context}\n\n"
             f"CÂU HỎI: {raw_query}\n\n"
             "TRẢ LỜI (ngắn gọn, tiếng Việt):"
@@ -194,8 +197,6 @@ class LocalLLMEngine:
 
             return " ".join(lines)
 
-        elif intent_label == "METRO_QUERY" and chunks:
-            return "Thông tin Tuyến Metro:\n" + chunks[0][:450]
 
         elif intent_label in ["FARE_QUERY", "RULE_QUERY"] and chunks:
             return "Thông tin Vé và Quy định xe buýt:\n" + chunks[0][:400] + "..."
@@ -207,4 +208,4 @@ class LocalLLMEngine:
             elif chunks:
                 return chunks[0][:400]
 
-        return FALLBACK_MESSAGE
+        return ROUTE_FALLBACK_MESSAGE if intent_label == "ROUTE_QUERY" else GENERAL_FALLBACK_MESSAGE

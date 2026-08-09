@@ -1031,7 +1031,6 @@
             recognition.lang = 'vi-VN';
             recognition.onresult = (e) => {
                 document.getElementById('user-input').value = e.results[0][0].transcript;
-                sendMessage();
                 stopVoiceRecording();
             };
             recognition.onerror = () => { stopVoiceRecording(); showToast("Lỗi nhận diện giọng nói", "error"); };
@@ -1139,7 +1138,7 @@
                 let html = `<p>${data.reply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}</p>`;
 
                 if (data.recommendations && data.recommendations.length > 0) {
-                    html += '<p style="font-size: 0.9em; color: var(--text-2); margin-top: 10px; margin-bottom: 8px;">💡 Bạn có thể kiểm tra trên Google Maps để theo dõi tuyến xe theo thời gian thực.</p>';
+                    html += '<p style="font-size: 0.9em; color: var(--text-2); margin-top: 10px; margin-bottom: 8px;">💡 Bạn có thể tham khảo các tuyến bus hoặc tra cứu thông tin trên Google Map hoặc timbus.vn để có thể theo dõi trực tiếp.</p>';
                     html += '<div class="routes-grid">';
                     data.recommendations.forEach(r => {
                         const color = routeColor(r.route_id);
@@ -1147,7 +1146,7 @@
                             <div class="route-card" style="border-left-color:${color};" onclick="drawRouteOnMap('${r.board_stop}', '${r.alight_stop}', '${r.itinerary || ''}')">
                                 <div class="card-header">
                                     <span class="route-badge" style="background:${color};">${r.route_id.replace('->', '➔')}</span>
-                                    <span class="fare-badge">${r.fare_vnd.toLocaleString('vi-VN')} VNĐ</span>
+                                    <span class="fare-badge">${Math.max(10000, r.fare_vnd || 0).toLocaleString('vi-VN')} VNĐ</span>
                                 </div>
                                 <div class="card-title">${r.route_name}</div>
                                 ${r.google_maps_url ? `<a href="${r.google_maps_url}" target="_blank" onclick="event.stopPropagation()" style="display: block; text-align: center; background: var(--accent); color: #000; padding: 8px; border-radius: 8px; margin-top: 12px; font-weight: 600; text-decoration: none; font-size: 0.9rem;">📍 Mở trên Google Maps</a>` : ''}
@@ -1156,6 +1155,8 @@
                     html += '</div>';
                     drawRouteOnMap(data.recommendations[0].board_stop, data.recommendations[0].alight_stop, data.recommendations[0].itinerary || '');
                 }
+
+                html += '<p style="font-size: 0.85em; color: var(--text-3); margin-top: 12px; font-style: italic; text-align: center;">⚠️ Kết quả đưa ra có thể có sai sót, vui lòng kiểm tra lại.</p>';
 
                 aiRow.querySelector('.msg-bubble').innerHTML = html;
                 chatHistory.scrollTop = chatHistory.scrollHeight;

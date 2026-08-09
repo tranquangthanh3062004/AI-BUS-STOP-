@@ -38,6 +38,11 @@ class NetworkMonitor:
     async def _monitor_loop(self, state_dict: dict = None):
         logger.info(f"NetworkMonitor background service started. Monitoring {self.host}:{self.port} every {self.interval_sec}s.")
         while self._running:
+            # Tối ưu: Nếu hệ thống bị ép chạy OFFLINE thủ công, không cần ping mạng
+            if state_dict is not None and state_dict.get("manual_override", False) and state_dict.get("network_mode") == "OFFLINE":
+                await asyncio.sleep(self.interval_sec)
+                continue
+
             status = await self.check_connectivity()
             if status != self.is_online:
                 self.is_online = status
@@ -51,12 +56,13 @@ class NetworkMonitor:
         if self._running:
             return
         self._running = True
-        self.is_online = True  # Assume online initially, let monitor loop update it
-        if state_dict is not None:
-            # Set ONLINE immediately on startup so first requests use online pipeline
-            state_dict["network_mode"] = "ONLINE"
-            state_dict["last_ping_status"] = self.is_online
-        self._task = asyncio.create_task(self._monitor_loop(state_dict))
+        self.is_online = False
+        
+        try:
+            loop = asyncio.get_running_loop()
+            self._task = loop.create_task(self._monitor_loop(state_dict))
+        except RuntimeError:
+            logger.warning("No running asyncio loop found. NetworkMonitor background task will not start.")
 
     def stop(self):
         self._running = False
