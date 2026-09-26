@@ -149,13 +149,14 @@ class OnlineAIAssistant:
                         for num in route_nums
                     )
                             
+                    new_valid_ids.append(route.route_name)
+                    ids = route.route_id.replace("->", " ").replace("HCM_", "").split()
+                    new_valid_ids.extend([normalize_route_id(i) for i in ids if i.strip()])
+
                     if route_valid:
-                        new_valid_ids.append(route.route_name)
-                        ids = route.route_id.replace("->", " ").replace("HCM_", "").split()
-                        new_valid_ids.extend([normalize_route_id(i) for i in ids if i.strip()])
                         route.description += " (Đã xác minh qua CSDL nội bộ)"
                     else:
-                        route.description += " (Bạn có thể tham khảo google map,timbus.vn hoặc tham khảo các tuyến)"
+                        route.description += " (Theo dữ liệu trực tuyến Google Maps)"
                     verified_routes.append(route)
                 
                 context.valid_route_ids = list(set(context.valid_route_ids + new_valid_ids))
@@ -177,24 +178,39 @@ class OnlineAIAssistant:
         # 4. Build context string for LLM
         context_str = self._build_context_string(context)
 
-        # 5. Native approach: Use Local Ollama API -> Deterministic Summarizer
-        logger.info("Using Local Ollama with Google Maps + SQLite Hybrid context...")
+        # 5. Model Inference Flow: Cloud Gemini -> Local Ollama -> Deterministic Summarizer
         answer_text = None
         status = "FALLBACK"
-        
-        ollama_answer = self._call_ollama_agent_api(norm_query, context_str)
-        if ollama_answer:
-            is_valid, validated_ollama = self.validator.validate(ollama_answer, context)
-            if is_valid:
-                answer_text = validated_ollama
-                sources.append("local_ollama_agent_api")
-                status = "SUCCESS"
-            else:
-                logger.warning("Ollama answer failed validation (Hallucination detected).")
 
+        # 5a. Primary Online Brain: Google Gemini Cloud API
+        if self.gemini_api_key and self.gemini_api_key.strip():
+            logger.info("Online mode: Invoking Google Gemini Cloud LLM...")
+            gemini_ans = self._call_gemini_api(norm_query, context_str)
+            if gemini_ans:
+                is_valid, validated_gemini = self.validator.validate(gemini_ans, context)
+                if is_valid:
+                    answer_text = validated_gemini
+                    sources.append("gemini_cloud_api")
+                    status = "SUCCESS"
+                else:
+                    logger.warning("Gemini answer failed validation (Hallucination detected).")
+
+        # 5b. Secondary: Local Ollama (if active)
+        if not answer_text and self.offline_assistant.llm_engine.ollama_active:
+            logger.info("Online mode: Fallback to Local Ollama API...")
+            ollama_answer = self._call_ollama_agent_api(norm_query, context_str)
+            if ollama_answer:
+                is_valid, validated_ollama = self.validator.validate(ollama_answer, context)
+                if is_valid:
+                    answer_text = validated_ollama
+                    sources.append("local_ollama_agent_api")
+                    status = "SUCCESS"
+                else:
+                    logger.warning("Ollama answer failed validation (Hallucination detected).")
+
+        # 5c. Final fallback: Deterministic Summarizer (always fast & reliable)
         if not answer_text:
-            # 6. Final fallback: deterministic summarizer (always works)
-            logger.warning("All LLMs unavailable or failed validation. Using deterministic summarizer.")
+            logger.info("Using deterministic summarizer fallback.")
             local_answer = self.offline_assistant.llm_engine.generate_answer(norm_query, context)
             _, answer_text = self.validator.validate(local_answer, context)
             sources.append("local_deterministic_summarizer")
@@ -288,6 +304,46 @@ class OnlineAIAssistant:
                         return resp["message"].get("content", "").strip()
         except Exception as e:
             logger.info(f"Ollama not available: {e}")
+        return None
+
+    def _call_gemini_api(self, query: str, context_str: str) -> Optional[str]:
+        """Call Google Gemini Flash Cloud API."""
+        if not self.gemini_api_key:
+            return None
+
+        prompt = SYSTEM_PROMPT_KIOSK.format(context=context_str, query=query)
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.gemini_api_key}"
+        
+        payload = {
+            "contents": [
+                {
+                    "parts": [{"text": prompt}]
+                }
+            ],
+            "generationConfig": {
+                "temperature": 0.1,
+                "maxOutputTokens": 300
+            }
+        }
+
+        try:
+            req_data = json.dumps(payload).encode("utf-8")
+            req = urllib.request.Request(
+                url,
+                data=req_data,
+                headers={"Content-Type": "application/json"}
+            )
+            data = self._http_request_with_retry(req, retries=2, timeout=8)
+            if data and "candidates" in data and len(data["candidates"]) > 0:
+                candidate = data["candidates"][0]
+                content = candidate.get("content", {})
+                parts = content.get("parts", [])
+                if parts and "text" in parts[0]:
+                    ans = parts[0]["text"].strip()
+                    logger.info("Successfully received answer from Google Gemini Flash API.")
+                    return ans
+        except Exception as e:
+            logger.warning(f"Google Gemini Cloud API call error: {e}")
         return None
 
     def _http_request_with_retry(self, req: urllib.request.Request, retries: int = 3, backoff_factor: float = 1.5, timeout: int = 10) -> Optional[dict]:

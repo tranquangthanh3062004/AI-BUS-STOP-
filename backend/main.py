@@ -81,12 +81,34 @@ async def lifespan(app: FastAPI):
     logger.info(f"Shutting down {settings.app_name}...")
 
 
+# System-wide Production Telemetry Metrics
+metrics_lock = threading.Lock()
+metrics_data = {
+    "server_start_time": time.time(),
+    "total_requests": 0,
+    "success_requests": 0,
+    "fallback_requests": 0,
+    "total_latency_ms": 0.0,
+    "queries_by_intent": defaultdict(int),
+    "recent_queries": []
+}
+
 app = FastAPI(
     title=settings.app_name,
-    description="Backend API for Smart Bus Stop Kiosk with Offline Local AI Pipeline",
+    description="Production-Ready Edge AI Backend API for Smart Bus Stop Kiosk",
     version=settings.app_version,
     lifespan=lifespan
 )
+
+# Production HTTP Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
 
 # Enable CORS for local testing and Kiosk UI
 app.add_middleware(
@@ -136,6 +158,43 @@ def get_system_status():
     }
 
 
+@app.get("/api/health")
+def get_health():
+    """Healthcheck endpoint for Docker, K8s, and Kiosk Watchdog."""
+    uptime_sec = round(time.time() - metrics_data["server_start_time"], 1)
+    db_ok = os.path.exists(settings.db_path)
+    return {
+        "status": "UP" if db_ok else "DEGRADED",
+        "station_id": system_manager.station_id,
+        "station_name": system_manager.station_name,
+        "uptime_seconds": uptime_sec,
+        "database_connected": db_ok,
+        "timestamp": time.time()
+    }
+
+
+@app.get("/api/metrics")
+def get_metrics():
+    """Telemetry metrics endpoint for Fleet Monitoring and Prometheus scrapers."""
+    with metrics_lock:
+        uptime = time.time() - metrics_data["server_start_time"]
+        total = metrics_data["total_requests"]
+        avg_latency = round(metrics_data["total_latency_ms"] / total, 2) if total > 0 else 0.0
+        success_rate = round((metrics_data["success_requests"] / total) * 100, 2) if total > 0 else 100.0
+
+        return {
+            "uptime_seconds": round(uptime, 1),
+            "total_requests": total,
+            "success_requests": metrics_data["success_requests"],
+            "fallback_requests": metrics_data["fallback_requests"],
+            "success_rate_percent": success_rate,
+            "avg_latency_ms": avg_latency,
+            "queries_by_intent": dict(metrics_data["queries_by_intent"]),
+            "network_mode": system_manager.network_mode,
+            "station_id": system_manager.station_id
+        }
+
+
 @app.post("/api/toggle-network")
 def toggle_network_mode(req: NetworkToggleRequest):
     """Chuyển đổi trạng thái mạng (ONLINE / OFFLINE) để test."""
@@ -182,37 +241,37 @@ def chat_endpoint(req: ChatRequest):
 
     logger.info(f"Processing chat request: '{sanitized_msg}' | Mode: {'OFFLINE' if use_offline else 'ONLINE'}")
 
-    query_req = QueryRequest(raw_text=sanitized_msg, session_id=req.session_id)
+    # Inject default station location context if passenger does not state origin
+    query_req = QueryRequest(raw_text=sanitized_msg, session_id=req.session_id, user_location=system_manager.station_name)
 
     if use_offline:
         offline_assistant = system_manager.offline_assistant
         res: OfflineResponse = offline_assistant.process_query(query_req)
-
-        logger.info(f"Offline response generated in {res.execution_time_ms} ms | Status: {res.status}")
-        return {
-            "status": res.status,
-            "reply": res.answer_text,
-            "intent": res.intent,
-            "processing_time_ms": res.execution_time_ms,
-            "mode": "HỆ_THỐNG",
-            "recommendations": [r.model_dump() for r in res.recommendations],
-            "sources": res.sources_used
-        }
     else:
         # Lấy Google Maps Data và chạy Gemini API
         online_assistant = system_manager.online_assistant
         res: OfflineResponse = online_assistant.process_query(query_req)
 
-        logger.info(f"Online response generated in {res.execution_time_ms} ms | Status: {res.status}")
-        return {
-            "status": res.status,
-            "reply": res.answer_text,
-            "intent": res.intent,
-            "processing_time_ms": res.execution_time_ms,
-            "mode": "HỆ_THỐNG",
-            "recommendations": [r.model_dump() for r in res.recommendations],
-            "sources": res.sources_used
-        }
+    # Record telemetry metrics
+    with metrics_lock:
+        metrics_data["total_requests"] += 1
+        metrics_data["total_latency_ms"] += res.execution_time_ms
+        metrics_data["queries_by_intent"][res.intent] += 1
+        if res.status == "SUCCESS":
+            metrics_data["success_requests"] += 1
+        else:
+            metrics_data["fallback_requests"] += 1
+
+    logger.info(f"Response generated in {res.execution_time_ms} ms | Status: {res.status} | Mode: {'OFFLINE' if use_offline else 'ONLINE'}")
+    return {
+        "status": res.status,
+        "reply": res.answer_text,
+        "intent": res.intent,
+        "processing_time_ms": res.execution_time_ms,
+        "mode": "HỆ_THỐNG",
+        "recommendations": [r.model_dump() for r in res.recommendations],
+        "sources": res.sources_used
+    }
 
 
 # Mount static directories

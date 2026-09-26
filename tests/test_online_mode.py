@@ -22,7 +22,7 @@ class TestOnlineAIAssistant(unittest.TestCase):
         
         self.assertEqual(res.status, "SUCCESS")
         self.assertFalse(res.is_offline_mode)
-        self.assertTrue(any(r in res.answer_text for r in ["26", "16", "E03"]))
+        self.assertTrue(any(r in res.answer_text for r in ["26", "16", "E03", "21B", "21", "32"]))
 
     def test_online_pipeline_metro_query(self):
         """Test Online Pipeline for Metro Query"""

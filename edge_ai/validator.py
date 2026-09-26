@@ -52,12 +52,19 @@ class AnswerValidator:
         ans_compact = answer_text.replace(" ", "").upper()
 
         if intent_label == "ROUTE_QUERY":
-            # 1. Clean out time, distance, and money contexts to avoid false positives on numbers
-            # Clean ranges like 10-15 phút or formatted numbers like 10.000 đ
-            clean_text = re.sub(r'\b\d+(?:[.,]\d+)*\s*-\s*\d+(?:[.,]\d+)*\s*(?:phút|p|giờ|h|tiếng|km|m|mét|đ|vnd|đồng|k|nghìn|ngàn)\b', '', answer_text, flags=re.IGNORECASE)
-            clean_text = re.sub(r'\b\d+(?:[.,]\d+)*\s*(?:phút|p|giờ|h|tiếng|km|m|mét|đ|vnd|đồng|k|nghìn|ngàn)\b', '', clean_text, flags=re.IGNORECASE)
-            # Remove typical counting words
-            clean_text = re.sub(r'\b(?:cách|bước|phương án|tuyến đường thứ)\s*\d+\b', '', clean_text, flags=re.IGNORECASE)
+            # 1. Thoroughly clean out time ranges, timestamps, distances, monetary figures, and ordinal markers
+            # Filter time ranges: e.g. 5h00 - 21h00, 05:00 - 21:00, 5h30 - 22h, 5h-21h
+            clean_text = re.sub(r'\b\d{1,2}(?:[h:]\d{2}|h)?\s*[-–—đến/]\s*\d{1,2}(?:[h:]\d{2}|h)?\b', '', answer_text, flags=re.IGNORECASE)
+            # Filter standalone times: e.g. 5h00, 21h30, 05:00, 21:00
+            clean_text = re.sub(r'\b\d{1,2}[h:]\d{2}\b', '', clean_text, flags=re.IGNORECASE)
+            # Filter time/distance/currency units with ranges: e.g. 10 - 15 phút, 15 - 20 km
+            clean_text = re.sub(r'\b\d+(?:[.,]\d+)*\s*[-–—]\s*\d+(?:[.,]\d+)*\s*(?:phút|p|giây|giờ|h|tiếng|km|m|mét|đ|vnd|vnđ|đồng|k|nghìn|ngàn|lượt|chuyến)\b', '', clean_text, flags=re.IGNORECASE)
+            # Filter numbers followed by standard units
+            clean_text = re.sub(r'\b\d+(?:[.,]\d+)*\s*(?:phút|p|giây|giờ|h|tiếng|km|m|mét|đ|vnd|vnđ|đồng|k|nghìn|ngàn|lượt|chuyến|ngày|tháng|năm)\b', '', clean_text, flags=re.IGNORECASE)
+            # Filter ordinal / ranking markers
+            clean_text = re.sub(r'\b(?:phương án|lựa chọn|tùy chọn|cách|bước|lần|tuyến đường thứ|phần)\s*\d+\b', '', clean_text, flags=re.IGNORECASE)
+            # Filter stop/transfer counts: e.g. "qua 5 trạm", "sau 3 điểm dừng"
+            clean_text = re.sub(r'\b\d+\s*(?:trạm|điểm dừng|chặng|bến)\b', '', clean_text, flags=re.IGNORECASE)
 
             # 2. Extract potential bus IDs: matches E01, BRT01, 14CT, or standalone 1-3 digits
             potential_routes = re.findall(r"\b(BRT\s*0?1|E0[1-9]|E10|[0-9]{1,3}[A-Z]{1,2}|[0-9]{1,3})\b", clean_text, flags=re.IGNORECASE)
@@ -70,9 +77,11 @@ class AnswerValidator:
             
             final_mentioned_routes = []
             for r in mentioned_routes:
-                # Filter out single digits 1-9 if they were not explicitly prefixed, to avoid blocking normal language (like "1 trạm")
+                if not r:
+                    continue
+                # Filter out single digits 1-9 if they were not explicitly prefixed, to avoid blocking normal language
                 if r.isdigit() and int(r) < 10 and r not in explicit_norm:
-                    if re.search(r'\b' + r + r'\s+(?:trạm|chuyến|lần|điểm)\b', answer_text, re.IGNORECASE):
+                    if re.search(r'\b' + r + r'\s+(?:trạm|chuyến|lần|điểm|km|phút)\b', answer_text, re.IGNORECASE):
                         continue
                 final_mentioned_routes.append(r)
 
@@ -82,7 +91,16 @@ class AnswerValidator:
                     return False, HARD_FAIL_MSG
                 return True, answer_text
 
-            valid_clean_ids = [normalize_route_id(v) for v in valid_route_ids]
+            # Enrich valid_clean_ids by also extracting individual route IDs from full route names
+            valid_clean_ids = set()
+            for v in valid_route_ids:
+                norm_v = normalize_route_id(v)
+                if norm_v:
+                    valid_clean_ids.add(norm_v)
+                # Also extract any route ID embedded in descriptions like "Tuyến 104" or "BRT 01"
+                found_ids = re.findall(r"\b(BRT\s*0?1|E0[1-9]|E10|[0-9]{1,3}[A-Z]{1,2}|[0-9]{1,3})\b", str(v), flags=re.IGNORECASE)
+                for fid in found_ids:
+                    valid_clean_ids.add(normalize_route_id(fid))
 
             for m_clean in final_mentioned_routes:
                 if m_clean not in valid_clean_ids:

@@ -87,52 +87,16 @@ class OfflineAIAssistant:
         # 2. Retrieve local context (Transit Graph + FAQ Store)
         context = self.retriever.retrieve(intent_res, raw_text)
         sources = []
-        
-        # 2.5. Hybrid Scraping for ROUTE_QUERY
-        scraped_routes = []
-        if intent_res.intent_label == "ROUTE_QUERY" and intent_res.entities.origin and intent_res.entities.destination:
-            scraped_routes = self.scraper.scrape_route(intent_res.entities.origin, intent_res.entities.destination)
-            if scraped_routes:
-                sources.append("google_maps_scraper")
-                verified_routes = []
-                new_valid_ids = []
-                from edge_ai.validator import normalize_route_id
-                
-                cache_keys = [normalize_route_id(k) for k in self.retriever.transit_graph._routes_cache.keys()]
-                
-                for route in scraped_routes:
-                    route_nums = route.route_id.split(" -> ")
-                    db_exists = True
-                    for num in route_nums:
-                        num = normalize_route_id(num)
-                        if num not in cache_keys:
-                            db_exists = False
-                            break
-                            
-                    if db_exists:
-                        new_valid_ids.append(route.route_name)
-                        ids = route.route_id.replace("->", " ").replace("HCM_", "").split()
-                        new_valid_ids.extend([normalize_route_id(i) for i in ids if i.strip()])
-                    else:
-                        route.description += " (Lưu ý hệ thống: Tuyến xe này có thể đã thay đổi lộ trình hoặc tạm ngừng)"
-                    verified_routes.append(route)
-                
-                context.valid_route_ids = list(set(context.valid_route_ids + new_valid_ids))
-                context.structured_routes = verified_routes
 
-        # 3. Generate answer using Local LLM / Summarizer
-        if scraped_routes:
-            context_str = self._build_context_string(context)
-            raw_answer = self._call_ollama_directly(norm_query, context_str)
-            if not raw_answer:
-                raw_answer = self.llm_engine.generate_answer(norm_query, context)
-                sources.append("local_deterministic_summarizer")
-            else:
-                sources.append("local_ollama_agent_api")
+        if context.structured_routes:
+            sources.append("local_transit_db_sqlite")
+
+        # 3. Generate answer using Local LLM / Deterministic Summarizer
+        raw_answer = self.llm_engine.generate_answer(norm_query, context)
+        if self.llm_engine.ollama_active and raw_answer not in FALLBACK_MESSAGES:
+            sources.append("local_ollama_agent_api")
         else:
-            raw_answer = self.llm_engine.generate_answer(norm_query, context)
-            if context.structured_routes:
-                sources.append("local_transit_db_sqlite")
+            sources.append("local_deterministic_summarizer")
 
         # 4. Validate answer against Anti-Hallucination rules
         is_valid, final_answer = self.validator.validate(raw_answer, context)
